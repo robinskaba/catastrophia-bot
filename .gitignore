@@ -1,1 +1,7 @@
+.idea/
+.pythonlibs/
+.env
 secrets.json
+.venv
+.vscode/
+**/__pycache__/

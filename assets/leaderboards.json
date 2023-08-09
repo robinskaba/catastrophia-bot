@@ -1,0 +1,26 @@
+{
+    "names": {
+        "DynamitesUsed": "Used dynamite",
+        "PlacedBuildingParts": "Building parts",
+        "PlayersKilled": "Players killed",
+        "AnimalsKilled": "Animals killed",
+        "FarmedWood": "Farmed wood",
+        "FarmedStone": "Farmed stone",
+        "FarmedIronOre": "Farmed iron",
+        "FarmedSulfurOre": "Farmed sulphur",
+        "GrassCollected": "Grass collected",
+        "GoldenBerriesFound": "Golden berries"
+    },
+    "print_order": [
+        "PlayersKilled",
+        "AnimalsKilled",
+        "DynamitesUsed",
+        "PlacedBuildingParts",
+        "GoldenBerriesFound",
+        "FarmedWood",
+        "FarmedStone",
+        "FarmedIronOre",
+        "FarmedSulfurOre",
+        "GrassCollected"
+    ]
+}
