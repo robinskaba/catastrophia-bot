@@ -57,7 +57,7 @@ class StatsCog(commands.Cog):
                 print(f"Missing Playing channel: {e}")
 
         if visits_vc:
-            visits_count = f"{game_stats.visits / 1_000_000:.1f}M"
+            visits_count = f"{game_stats.visits / 1_000_000:.2f}M"
             try:
                 await visits_vc.edit(name=f"Visits: {visits_count}")
             except Exception as e:
