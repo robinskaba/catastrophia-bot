@@ -8,6 +8,7 @@ from discord import (
 from discord.ext import commands
 from discord.app_commands import Choice
 
+from src.core.services.stats_service import StatsService
 from src.core.services.user_service import UserService
 
 
@@ -23,34 +24,7 @@ class RobloxCog(commands.Cog):
         self.bot = bot
 
         self.user_service = UserService()
-
-    @app_commands.command(name="restrictions", description="Lists user's restrictions.")
-    async def list_restrictions(self, interaction: Interaction, username: str):
-        user = self.user_service.get_user(username)
-        if not user:
-            await _answer_unknown_user(interaction, username)
-        restrictions = self.user_service.get_user_restrictions(user)
-        restrictions = restrictions if restrictions else []
-
-        is_banned = restrictions[0].is_ongoing if len(restrictions) > 0 else False
-
-        message = "```text\n"
-        for restriction in restrictions:
-            date_str = restriction.time.strftime("%d.%m.%y %H:%M")
-            dur_text = (
-                f"({restriction.duration // 3600} h)" if restriction.duration else ""
-            )
-            reason = restriction.reason if restriction.active else "unbanned"
-            message += f"[{date_str}] {dur_text}\n> {reason}\n\n"
-        message += "```"
-
-        embed = Embed(title=f"{user.name}'s restrictions", color=Color.red())
-
-        status_msg = f"is banned" if is_banned else "is not banned"
-        embed.add_field(name="Status", value=f"{user.name} {status_msg}.", inline=False)
-        embed.add_field(name="Restrictions", value=message, inline=False)
-
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        self.stats_service = StatsService()
 
     @app_commands.command(
         name="player", description="Lists information about a player."
@@ -76,8 +50,33 @@ class RobloxCog(commands.Cog):
         # Catastrophia information
         spent_rbx = self.user_service.get_robux_spent(user)
         spent_rbx = f"{spent_rbx:,}".replace(",", " ")  # formatting
+        playtime = self.stats_service.get_player_playtime(user.name)
         embed.add_field(
-            name="Catastrophia", value=f"Spent: {spent_rbx} RBX\n", inline=False
+            name="Catastrophia",
+            value=f"Spent: **{spent_rbx}** RBX\nPlaytime: **{playtime // 60} hours**\n",
+            inline=False,
+        )
+
+        # Restrictions
+        restrictions = self.user_service.get_user_restrictions(user)
+        restrictions = restrictions if restrictions else []
+        is_banned = restrictions[0].is_ongoing if len(restrictions) > 0 else False
+
+        message = "```\n"
+        for restriction in restrictions:
+            date_str = restriction.time.strftime("%d.%m.%y %H:%M")
+            dur_text = (
+                f"({restriction.duration // 3600} h)" if restriction.duration else ""
+            )
+            reason = restriction.reason if restriction.active else "unbanned"
+            message += f"[{date_str}] {dur_text}\n> {reason}\n"
+        message += "```"
+
+        status_msg = f"is banned" if is_banned else "is not banned"
+        embed.add_field(
+            name="Restrictions",
+            value=f"{user.name} **{status_msg}**\n{message}",
+            inline=False,
         )
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
