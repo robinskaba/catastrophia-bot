@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class GameStats:
 
     def __init__(self, playing: int, visits: int):
