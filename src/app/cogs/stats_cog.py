@@ -6,16 +6,13 @@ from src.core.services.user_service import UserService
 from src.config.config import Config
 from src.core.services.stats_service import StatsService
 
-_confidential_usernames = Config.CONFIDENTIAL_USERNAMES
-_owner_role_id = Config.OWNER_ROLE_ID
-
 
 def _is_confidential(username: str) -> bool:
-    return username.lower() in _confidential_usernames
+    return username.lower() in Config.CONFIDENTIAL_USERNAMES
 
 
 def _is_owner(member: Member) -> bool:
-    return member.get_role(_owner_role_id) != None
+    return member.get_role(Config.OWNER_ROLE_ID) != None
 
 
 with open("assets/leaderboards.json", "r") as read:
