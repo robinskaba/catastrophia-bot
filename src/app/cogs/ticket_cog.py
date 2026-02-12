@@ -12,11 +12,6 @@ class TicketCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        self.tickets_category_id = Config.TICKETS_CATEGORY_ID
-        self.excluded_ticket_channels = Config.EXCLUDED_TICKET_CHANNELS
-        self.max_inactivity = timedelta(days=Config.TICKET_MAX_INACTIVITY)  # in days
-        self.ticket_bot_id = Config.TICKET_BOT_ID
-
     async def cog_load(self):
         self.check_inactive_tickets.start()
 
@@ -25,15 +20,15 @@ class TicketCog(commands.Cog):
 
     @tasks.loop(hours=1)
     async def check_inactive_tickets(self):
-        tickets_category = self.bot.get_channel(self.tickets_category_id)
+        tickets_category = self.bot.get_channel(Config.TICKETS_CATEGORY_ID)
         if not isinstance(tickets_category, discord.CategoryChannel):
             raise KeyError(
-                f"Category ID '{self.tickets_category_id}' is not a valid category!"
+                f"Category ID '{Config.TICKETS_CATEGORY_ID}' is not a valid category!"
             )
 
         for channel in tickets_category.text_channels:
             if (
-                channel.name in self.excluded_ticket_channels
+                channel.name in Config.EXCLUDED_TICKET_CHANNELS
             ):  # dont remove public channels
                 continue
 
@@ -52,12 +47,15 @@ class TicketCog(commands.Cog):
                 time_diff = now - last_msg.created_at
 
                 # remove tickets without messages = last message made by ticket bot
-                last_message_ticket_bot = last_msg.author.id == self.ticket_bot_id
+                last_message_ticket_bot = last_msg.author.id == Config.TICKET_BOT_ID
                 is_without_messages = last_message_ticket_bot and time_diff > timedelta(
                     hours=1
                 )
 
-                if time_diff > self.max_inactivity or is_without_messages:
+                if (
+                    time_diff > timedelta(days=Config.TICKET_MAX_INACTIVITY)
+                    or is_without_messages
+                ):
                     reason = (
                         "last message was from ticket bot"
                         if is_without_messages

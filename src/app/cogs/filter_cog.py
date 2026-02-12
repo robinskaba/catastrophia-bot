@@ -10,8 +10,6 @@ class FilterCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        self._youtube_videos_channel_id = Config.YOUTUBE_VIDEOS_CHANNEL_ID
-
         self._youtube_regex = re.compile(
             r"(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.+"
         )
@@ -22,7 +20,7 @@ class FilterCog(commands.Cog):
             return
 
         match message.channel.id:
-            case self._youtube_videos_channel_id:
+            case Config.YOUTUBE_VIDEOS_CHANNEL_ID:
                 await self.enforce_youtube_videos(message)
 
     async def enforce_youtube_videos(self, message):
