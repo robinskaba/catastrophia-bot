@@ -15,6 +15,7 @@ class TicketCog(commands.Cog):
         self.tickets_category_id = Config.TICKETS_CATEGORY_ID
         self.excluded_ticket_channels = Config.EXCLUDED_TICKET_CHANNELS
         self.max_inactivity = timedelta(days=Config.TICKET_MAX_INACTIVITY)  # in days
+        self.ticket_bot_id = Config.TICKET_BOT_ID
 
     async def cog_load(self):
         self.check_inactive_tickets.start()
@@ -50,15 +51,22 @@ class TicketCog(commands.Cog):
                 now = datetime.now(timezone.utc)
                 time_diff = now - last_msg.created_at
 
-                if time_diff > self.max_inactivity:
-                    print(
-                        f"Closing {channel.name}: Inactive for {time_diff.days} days."
+                # remove tickets without messages = last message made by ticket bot
+                last_message_ticket_bot = last_msg.author.id == self.ticket_bot_id
+                is_without_messages = last_message_ticket_bot and time_diff > timedelta(
+                    hours=1
+                )
+
+                if time_diff > self.max_inactivity or is_without_messages:
+                    reason = (
+                        "last message was from ticket bot"
+                        if is_without_messages
+                        else f"inactive for {time_diff.days} days"
                     )
+                    print(f"Closing {channel.name}: {reason}.")
 
                     # delete channel because it was inactive
-                    await channel.delete(
-                        reason=f"Ticket inactive for > {self.max_inactivity} days"
-                    )
+                    await channel.delete(reason=f"Removed because: {reason}")
 
             except Exception as e:
                 print(f"Error checking channel {channel.name}: {e}")

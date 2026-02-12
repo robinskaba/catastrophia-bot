@@ -54,3 +54,5 @@ class Config:
     PLAYING_CHANNEL_ID = int(_require_config("PLAYING_CHANNEL_ID"))
     VISITS_CHANNEL_ID = int(_require_config("VISITS_CHANNEL_ID"))
     OWNER_ROLE_ID = int(_require_config("OWNER_ROLE_ID"))
+
+    TICKET_BOT_ID = int(_require_config("TICKET_BOT_ID"))
