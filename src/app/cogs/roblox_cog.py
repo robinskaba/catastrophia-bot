@@ -62,14 +62,19 @@ class RobloxCog(commands.Cog):
         restrictions = restrictions if restrictions else []
         is_banned = restrictions[0].is_ongoing if len(restrictions) > 0 else False
 
-        message = "```\n"
-        for restriction in restrictions:
-            date_str = restriction.time.strftime("%d.%m.%y %H:%M")
-            dur_text = (
-                f"({restriction.duration // 3600} h)" if restriction.duration else ""
-            )
-            reason = restriction.reason if restriction.active else "unbanned"
-            message += f"[{date_str}] {dur_text}\n> {reason}\n"
+        message = "```text\n"
+        if len(restrictions) == 0:
+            message += "no bans yet.."
+        else:
+            for restriction in restrictions:
+                date_str = restriction.time.strftime("%d.%m.%y %H:%M")
+                dur_text = (
+                    f"({restriction.duration // 3600} h)"
+                    if restriction.duration
+                    else ""
+                )
+                reason = restriction.reason if restriction.active else "unbanned"
+                message += f"[{date_str}] {dur_text}\n> {reason}\n"
         message += "```"
 
         status_msg = f"is banned" if is_banned else "is not banned"
@@ -101,7 +106,7 @@ class RobloxCog(commands.Cog):
         reason: str = "",
         duration_in_days: int | None = None,
         ban_alts: int = 1,
-        show_response: int = 1,
+        show_response: int = 0,
     ):
         user = self.user_service.get_user(username)
         if not user:
@@ -139,7 +144,7 @@ class RobloxCog(commands.Cog):
         ],
     )
     async def unban_roblox_user(
-        self, interaction: Interaction, username: str, show_response: int = 1
+        self, interaction: Interaction, username: str, show_response: int = 0
     ) -> bool:
         user = self.user_service.get_user(username)
         if not user:
