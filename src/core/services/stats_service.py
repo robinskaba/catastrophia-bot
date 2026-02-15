@@ -21,12 +21,6 @@ class StatsService:
 
     def get_player_playtime(self, username: str) -> int:
         playtime = self.playtimes_dao.get(username)
-
-        # if the username was a bit incorrect it will try to match a user to the username
-        if not playtime:
-            user = self.user_dao.get_user_from_username(username)
-            playtime = self.playtimes_dao.get(user.name) if user else None
-
         return playtime if playtime else 0
 
     def get_player_stats(self, user_id: str) -> dict:
