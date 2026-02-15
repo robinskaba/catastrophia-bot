@@ -2,7 +2,8 @@
   "TICKET_MAX_INACTIVITY": 3,
   "EXCLUDED_TICKET_CHANNELS": [
     "ticket-tutorial",
-    "ticket-system"
+    "ticket-system",
+    "ticket-house5food"
   ],
   "CONFIDENTIAL_USERNAMES": [
     "iloveczechrepublic",

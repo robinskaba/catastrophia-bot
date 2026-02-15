@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 ENV_FILE_PATH = ".env"
-CONFIG_FILE_PATH = "assets/config.json"
+CONFIG_FILE_PATH = "config.json"
 
 load_dotenv(ENV_FILE_PATH)
 
