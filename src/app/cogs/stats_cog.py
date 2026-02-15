@@ -109,12 +109,12 @@ class StatsCog(commands.Cog):
             return
 
         user = self.user_service.get_user(username)
-        playtime = self.stats_service.get_player_playtime(username)
+        playtime = self.stats_service.get_player_playtime(user.name) if user else 0
 
         message = (
             f"{user.name} has played {playtime // 60} hours and {playtime % 60} minutes."
             if playtime >= 60
-            else f"{username} has played less than 1 hour."
+            else f"{user.name} has played less than 1 hour."
         )
         embed = Embed(title="", description=message, color=Color.blue())
 
