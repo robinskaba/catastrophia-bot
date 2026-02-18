@@ -1,4 +1,5 @@
 import os
+from aiohttp import ClientConnectorError
 import discord
 from discord.ext import commands
 from discord import Intents
@@ -18,7 +19,11 @@ class CatastrophiaBot(commands.Bot):
 
     def launch(self):
         token = Env.BOT_TOKEN
-        self.run(token)
+
+        try:
+            self.run(token)
+        except ClientConnectorError as e:
+            print(f"Failed to connect bot due to ClientConnectorError! {e}")
 
     async def setup_hook(self):
         # load cogs
