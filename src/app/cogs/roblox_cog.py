@@ -33,9 +33,11 @@ class RobloxCog(commands.Cog):
         user = self.user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
+            return
         user = self.user_service.get_detailed_user(user.id)
         if not user:
             await _answer_unknown_user(interaction, username)
+            return
 
         embed = Embed(title=user.name, color=Color.random())
         embed.set_thumbnail(url=self.user_service.get_user_thumbnail_url(user))
@@ -111,6 +113,7 @@ class RobloxCog(commands.Cog):
         user = self.user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
+            return
 
         success = self.user_service.add_user_restriction(
             user, reason, duration_in_days, ban_alts
@@ -149,6 +152,7 @@ class RobloxCog(commands.Cog):
         user = self.user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
+            return
 
         success = self.user_service.remove_user_restriction(user)
         message = (
