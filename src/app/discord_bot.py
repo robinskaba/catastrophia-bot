@@ -1,5 +1,5 @@
 import os
-from aiohttp import ClientConnectorError
+from aiohttp.connector import ClientConnectorError
 import discord
 from discord.ext import commands
 from discord import Intents
