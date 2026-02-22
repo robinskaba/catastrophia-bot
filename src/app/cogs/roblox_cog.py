@@ -12,9 +12,12 @@ from src.core.services.stats_service import StatsService
 from src.core.services.user_service import UserService
 
 
-async def _answer_unknown_user(interaction: Interaction, username: str):
+async def _answer_unknown_user(
+    interaction: Interaction, username: str, followup: bool = False
+):
     embed = Embed(title=f"{username}", description="No user found.", color=Color.red())
-    await interaction.response.send_message(embed=embed, ephemeral=True)
+    response = interaction.followup if followup else interaction.response
+    await response.send_message(embed=embed, ephemeral=True)
 
 
 class RobloxCog(commands.Cog):
@@ -30,13 +33,14 @@ class RobloxCog(commands.Cog):
         name="player", description="Lists information about a player."
     )
     async def show_player_info(self, interaction: Interaction, username: str):
+        await interaction.response.defer(
+            ephemeral=True
+        )  # defering since might take longer
+
         user = self.user_service.get_user(username)
+        user = self.user_service.get_detailed_user(user.id) if user else None
         if not user:
-            await _answer_unknown_user(interaction, username)
-            return
-        user = self.user_service.get_detailed_user(user.id)
-        if not user:
-            await _answer_unknown_user(interaction, username)
+            await _answer_unknown_user(interaction, username, followup=True)
             return
 
         embed = Embed(title=user.name, color=Color.random())
