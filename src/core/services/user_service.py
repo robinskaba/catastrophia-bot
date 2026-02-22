@@ -22,8 +22,8 @@ class UserService:
     def get_user(self, username: str) -> User | None:
         return self.user_dao.get_user_from_username(username)
 
-    def get_detailed_user(self, username: str) -> RobloxUser | None:
-        return self.user_dao.get_roblox_user(username)
+    def get_detailed_user(self, user_id: str) -> RobloxUser | None:
+        return self.user_dao.get_roblox_user(user_id)
 
     def get_user_thumbnail_url(self, user: User) -> str:
         return self.user_dao.get_user_avatar_headshot_img_url(user.id)
