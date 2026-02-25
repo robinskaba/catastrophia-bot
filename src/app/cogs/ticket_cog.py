@@ -13,10 +13,12 @@ class TicketCog(commands.Cog):
         self.bot = bot
 
     async def cog_load(self):
-        self.check_inactive_tickets.start()
+        # self.check_inactive_tickets.start()
+        pass
 
     async def cog_unload(self):
-        self.check_inactive_tickets.cancel()
+        # self.check_inactive_tickets.cancel()
+        pass
 
     @tasks.loop(hours=1)
     async def check_inactive_tickets(self):
