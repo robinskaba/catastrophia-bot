@@ -5,6 +5,7 @@ from discord.ext import commands, tasks
 from src.core.services.user_service import UserService
 from src.config.config import Config
 from src.core.services.stats_service import StatsService
+from datetime import datetime, timezone
 
 
 def _is_confidential(username: str) -> bool:
@@ -63,6 +64,16 @@ class StatsCog(commands.Cog):
     @tasks.loop(hours=24)
     async def show_top_playtimes(self):
         top_players_channel = self.bot.get_channel(Config.TOP_PLAYERS_CHANNEL_ID)
+        messages = [message async for message in top_players_channel.history(limit=1)]
+        last_msg = messages[0] if messages and len(messages) > 0 else None
+        if last_msg:
+            created_seconds_ago = (
+                datetime.now(timezone.utc) - last_msg.created_at
+            ).seconds
+            if created_seconds_ago < 23 * 3600:
+                print("Top playtimes already shown on bot start.")
+                return
+
         await top_players_channel.purge()
 
         top_times: list[tuple] = self.stats_service.get_top_playtimes()
