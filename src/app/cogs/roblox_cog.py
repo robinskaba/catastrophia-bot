@@ -49,7 +49,7 @@ class RobloxCog(commands.Cog):
         # Roblox information
         embed.add_field(
             name="Roblox",
-            value=f"ID: {user.id}\nAbout: {user.about}\nAccount age: {user.account_age_in_days} days\nPremium: {user.premium}\nLocale: {user.locale}\n\n",
+            value=f"ID: {user.id}\nAccount age: {user.account_age_in_days} days\nPremium: {user.premium}\nLocale: {user.locale}\n\n",
             inline=False,
         )
 
@@ -59,7 +59,7 @@ class RobloxCog(commands.Cog):
         playtime = self.stats_service.get_player_playtime(user.name)
         embed.add_field(
             name="Catastrophia",
-            value=f"Spent: **{spent_rbx}** RBX\nPlaytime: **{playtime // 60} hours**\n",
+            value=f"**Spent: {spent_rbx}** RBX\nPlaytime: {playtime // 60} hours\n",
             inline=False,
         )
 
