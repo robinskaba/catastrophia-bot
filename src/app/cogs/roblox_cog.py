@@ -90,7 +90,7 @@ class RobloxCog(commands.Cog):
             inline=False,
         )
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
     @app_commands.command(
         name="roblox-ban", description="Bans a Roblox user from Catastrophia"
