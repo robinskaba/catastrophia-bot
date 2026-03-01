@@ -12,12 +12,12 @@ from src.core.services.stats_service import StatsService
 from src.core.services.user_service import UserService
 
 
-async def _answer_unknown_user(
-    interaction: Interaction, username: str, followup: bool = False
-):
+async def _answer_unknown_user(interaction: Interaction, username: str):
     embed = Embed(title=f"{username}", description="No user found.", color=Color.red())
-    response = interaction.followup if followup else interaction.response
-    await response.send_message(embed=embed, ephemeral=True)
+    if not interaction.response.is_done():
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+    else:
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
 
 class RobloxCog(commands.Cog):
@@ -40,7 +40,7 @@ class RobloxCog(commands.Cog):
         user = self.user_service.get_user(username)
         user = self.user_service.get_detailed_user(user.id) if user else None
         if not user:
-            await _answer_unknown_user(interaction, username, followup=True)
+            await _answer_unknown_user(interaction, username)
             return
 
         embed = Embed(title=user.name, color=Color.random())
