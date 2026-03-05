@@ -69,7 +69,7 @@ class StatsCog(commands.Cog):
         if last_msg:
             created_seconds_ago = (
                 datetime.now(timezone.utc) - last_msg.created_at
-            ).seconds
+            ).total_seconds()
             if created_seconds_ago < 23 * 3600:
                 print("Top playtimes already shown on bot start.")
                 return
