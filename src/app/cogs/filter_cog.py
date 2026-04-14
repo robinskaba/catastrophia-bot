@@ -83,7 +83,7 @@ class FilterCog(commands.Cog):
             case Config.YOUTUBE_VIDEOS_CHANNEL_ID:
                 await self.enforce_youtube_videos(message)
 
-    async def enforce_youtube_videos(self, message):
+    async def enforce_youtube_videos(self, message: Message):
         """Delete messages in #youtube-videos if they are not a youtube link."""
 
         if not self._youtube_regex.search(message.content):
@@ -91,6 +91,9 @@ class FilterCog(commands.Cog):
             await message.channel.send(
                 f"{message.author.mention}, this channel is for **youtube videos only!**",
                 delete_after=10,
+            )
+            logger.info(
+                f"removed non-youtube link message from @{message.author.name}: '{message.content}'"
             )
 
     async def enforce_no_media(self, message: Message) -> bool:

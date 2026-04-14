@@ -1,3 +1,5 @@
+import logging
+
 from discord import (
     Color,
     Embed,
@@ -10,6 +12,9 @@ from discord.app_commands import Choice
 
 from src.core.services.stats_service import StatsService
 from src.core.services.user_service import UserService
+
+
+logger = logging.getLogger(__name__)
 
 
 async def _answer_unknown_user(interaction: Interaction, username: str):
@@ -141,6 +146,13 @@ class RobloxCog(commands.Cog):
             embed=embed, ephemeral=not show_response
         )
 
+        if success:
+            logger.info(
+                f"@{interaction.user.name} banned roblox user '{user.name}', {duration_in_days=}, {reason=}"
+            )
+        else:
+            logger.error(f"banning roblox user '{user.name}' failed")
+
     @app_commands.command(
         name="roblox-unban", description="Unbans a Roblox user from Catastrophia"
     )
@@ -173,6 +185,9 @@ class RobloxCog(commands.Cog):
         await interaction.response.send_message(
             embed=embed, ephemeral=not show_response
         )
+
+        if success:
+            logger.info(f"@{interaction.user.name} unbanned roblox user '{user.name}'")
 
 
 async def setup(bot: commands.Bot) -> None:
