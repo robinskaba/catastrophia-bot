@@ -29,8 +29,8 @@ def _require_config(key: str):
 
 class Env:
     BOT_TOKEN = _require_env("BOT_TOKEN")
-    APPLICATION_ID = _require_env("APPLICATION_ID")
-    GUILD_ID = _require_env("GUILD_ID")
+    APPLICATION_ID = int(_require_env("APPLICATION_ID"))
+    GUILD_ID = int(_require_env("GUILD_ID"))
 
     API_KEY = _require_env("API_KEY")
     UNIVERSE_ID = _require_env("UNIVERSE_ID")
@@ -50,7 +50,13 @@ class Config:
     YOUTUBE_VIDEOS_CHANNEL_ID = int(_require_config("YOUTUBE_VIDEOS_CHANNEL_ID"))
     PLAYING_CHANNEL_ID = int(_require_config("PLAYING_CHANNEL_ID"))
     VISITS_CHANNEL_ID = int(_require_config("VISITS_CHANNEL_ID"))
+
     OWNER_ROLE_ID = int(_require_config("OWNER_ROLE_ID"))
+    CONTENT_CREATOR_ROLE_ID = int(_require_config("CONTENT_CREATOR_ROLE_ID"))
+
+    CONTENT_CREATOR_INACTIVITY_MAX = int(
+        _require_config("CONTENT_CREATOR_INACTIVITY_MAX")
+    )
 
     TICKET_BOT_ID = int(_require_config("TICKET_BOT_ID"))
 
