@@ -1,8 +1,10 @@
+from datetime import timedelta, timezone
+import logging
 import re
-from discord import Message, Object
-from discord.ext import commands
+from discord import Message, Object, datetime
+from discord.ext import commands, tasks
 
-from src.config.config import Config
+from src.config.config import Config, Env
 
 MEDIA_EXTENSIONS = (
     ".gif",
@@ -15,6 +17,8 @@ MEDIA_EXTENSIONS = (
     ".webm",
     ".mov",
 )
+
+logger = logging.getLogger(__name__)
 
 
 class FilterCog(commands.Cog):
@@ -29,6 +33,42 @@ class FilterCog(commands.Cog):
             r"\.(gif|png|jpe?g|webp|bmp|mp4|webm|mov)|tenor\.com/view|giphy\.com/media|imgur\.com",
             re.IGNORECASE,
         )
+
+    async def cog_load(self):
+        self.check_inactive_creators.start()
+
+    async def cog_unload(self):
+        self.check_inactive_creators.cancel()
+
+    @tasks.loop(hours=24)
+    async def check_inactive_creators(self):
+        await self.bot.wait_until_ready()
+
+        guild = self.bot.get_guild(Env.GUILD_ID)
+        if not guild:
+            return
+
+        channel = self.bot.get_channel(Config.YOUTUBE_VIDEOS_CHANNEL_ID)
+        role = guild.get_role(Config.CONTENT_CREATOR_ROLE_ID)
+
+        if not channel or not role:
+            return
+
+        three_months_ago = datetime.now(timezone.utc) - timedelta(
+            days=Config.CONTENT_CREATOR_INACTIVITY_MAX
+        )
+        active_members = set()
+
+        async for msg in channel.history(limit=None, after=three_months_ago):
+            if self._youtube_regex.search(msg.content):
+                active_members.add(msg.author.id)
+
+        for member in role.members:
+            if member.id not in active_members:
+                logger.info(
+                    f"member {member.name} lost his content creator status due to not posting for {Config.CONTENT_CREATOR_INACTIVITY_MAX} days."
+                )
+                await member.remove_roles(role)
 
     @commands.Cog.listener()
     async def on_message(self, message: Message):
@@ -77,6 +117,9 @@ class FilterCog(commands.Cog):
             await message.channel.send(
                 f"{message.author.mention}, don't try to sneak media in this channel!",
                 delete_after=5,
+            )
+            logger.info(
+                f"removed sneaky media in #{message.channel.name} from @{message.author.name}"
             )
             return True
 
