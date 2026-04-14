@@ -44,13 +44,10 @@ class Env:
 
 
 class Config:
-    TICKET_MAX_INACTIVITY = _require_config("TICKET_MAX_INACTIVITY")
-    EXCLUDED_TICKET_CHANNELS = _require_config("EXCLUDED_TICKET_CHANNELS")
     CONFIDENTIAL_USERNAMES = _require_config("CONFIDENTIAL_USERNAMES")
 
     TOP_PLAYERS_CHANNEL_ID = int(_require_config("TOP_PLAYERS_CHANNEL_ID"))
     YOUTUBE_VIDEOS_CHANNEL_ID = int(_require_config("YOUTUBE_VIDEOS_CHANNEL_ID"))
-    TICKETS_CATEGORY_ID = int(_require_config("TICKETS_CATEGORY_ID"))
     PLAYING_CHANNEL_ID = int(_require_config("PLAYING_CHANNEL_ID"))
     VISITS_CHANNEL_ID = int(_require_config("VISITS_CHANNEL_ID"))
     OWNER_ROLE_ID = int(_require_config("OWNER_ROLE_ID"))
