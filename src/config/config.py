@@ -56,3 +56,5 @@ class Config:
     OWNER_ROLE_ID = int(_require_config("OWNER_ROLE_ID"))
 
     TICKET_BOT_ID = int(_require_config("TICKET_BOT_ID"))
+
+    NO_MEDIA_CHANNELS = _require_config("NO_MEDIA_CHANNELS")
