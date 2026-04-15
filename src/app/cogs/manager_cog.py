@@ -1,7 +1,11 @@
 import datetime
+import logging
 from discord import Interaction, Member, Object, TextChannel, User, app_commands
+import discord
 from discord.app_commands import Choice
 from discord.ext import commands
+
+logger = logging.getLogger(__name__)
 
 
 class ManagerCog(commands.Cog):
@@ -19,31 +23,35 @@ class ManagerCog(commands.Cog):
         limit: int = 100,
     ) -> None:
         """Removes messages from a user."""
+        await interaction.response.defer(ephemeral=True)
 
-        two_weeks_ago = datetime.datetime.now() - datetime.timedelta(weeks=2)
+        two_weeks_ago = discord.utils.utcnow() - datetime.timedelta(weeks=2)
         searched_messages_limit = (
             limit * 3 if limit < 100 else None
         )  # allow max search if limit set to 100
-        messages_iterator = channel.history(
-            after=two_weeks_ago, limit=searched_messages_limit
-        )
 
         user_messages = []
-        async for message in messages_iterator:
+        async for message in channel.history(limit=searched_messages_limit):
+            if message.created_at < two_weeks_ago:
+                break
+
             if len(user_messages) >= limit:
                 break
 
             if message.author == user:
                 user_messages.append(message)
 
-        await interaction.response.send_message(
+        if user_messages:
+            # message removal
+            await channel.delete_messages(user_messages)
+
+        await interaction.followup.send(
             f"```Removed {len(user_messages)} last message(s) from {user.display_name} ({user.name}) in #{channel.name}.```",
             ephemeral=True,
-            delete_after=10,
         )
-
-        # message removal
-        await channel.delete_messages(user_messages)
+        logger.info(
+            f"removed {len(user_messages)} last message(s) from {user.display_name} ({user.name}) in #{channel.name}."
+        )
 
     @app_commands.command(
         name="ban", description="Permanently bans a user from the discord server."
