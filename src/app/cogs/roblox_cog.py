@@ -119,6 +119,8 @@ class RobloxCog(commands.Cog):
         ban_alts: int = 1,
         show_response: int = 0,
     ):
+        await interaction.response.defer(ephemeral=not show_response)
+
         user = self.user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
@@ -142,9 +144,7 @@ class RobloxCog(commands.Cog):
             description=f"{user.name} {message}",
             color=Color.red(),
         )
-        await interaction.response.send_message(
-            embed=embed, ephemeral=not show_response
-        )
+        await interaction.followup.send(embed=embed, ephemeral=not show_response)
 
         if success:
             logger.info(
@@ -165,6 +165,8 @@ class RobloxCog(commands.Cog):
     async def unban_roblox_user(
         self, interaction: Interaction, username: str, show_response: int = 0
     ) -> bool:
+        await interaction.response.defer(ephemeral=not show_response)
+
         user = self.user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
@@ -182,9 +184,7 @@ class RobloxCog(commands.Cog):
             description=f"{user.name} {message}",
             color=Color.green(),
         )
-        await interaction.response.send_message(
-            embed=embed, ephemeral=not show_response
-        )
+        await interaction.followup.send(embed=embed, ephemeral=not show_response)
 
         if success:
             logger.info(f"@{interaction.user.name} unbanned roblox user '{user.name}'")

@@ -119,6 +119,8 @@ class StatsCog(commands.Cog):
             )
             return
 
+        await interaction.response.defer()
+
         user = self.user_service.get_user(username)
         playtime = self.stats_service.get_player_playtime(user.name) if user else 0
         username = user.name if user else username
@@ -130,7 +132,7 @@ class StatsCog(commands.Cog):
         )
         embed = Embed(title="", description=message, color=Color.blue())
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send(embed=embed)
 
     @command(name="stats", description="Shows the player's leaderboards stats.")
     async def stats(self, interaction: Interaction, username: str) -> None:
@@ -141,6 +143,8 @@ class StatsCog(commands.Cog):
                 ephemeral=True,
             )
             return
+
+        await interaction.response.defer()
 
         user = self.user_service.get_user(username)
         if not user:
@@ -174,7 +178,7 @@ class StatsCog(commands.Cog):
                 inline=True,
             )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 
 async def setup(bot: commands.Bot) -> None:
