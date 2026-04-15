@@ -1,3 +1,4 @@
+import logging
 import os
 from aiohttp.connector import ClientConnectorError
 import discord
@@ -7,6 +8,8 @@ from discord import Intents
 from src.config.config import Env
 
 COGS_PATH = "src/app/cogs"
+
+logger = logging.getLogger(__name__)
 
 
 class CatastrophiaBot(commands.Bot):
@@ -23,7 +26,7 @@ class CatastrophiaBot(commands.Bot):
         try:
             self.run(token)
         except ClientConnectorError as e:
-            print(f"Failed to connect bot due to ClientConnectorError! {e}")
+            logger.error(f"failed to connect bot due to ClientConnectorError! {e}")
 
     async def setup_hook(self):
         # load cogs
@@ -35,7 +38,7 @@ class CatastrophiaBot(commands.Bot):
             await self.load_extension(f"src.app.cogs.{name}")
 
         await self.tree.sync(guild=discord.Object(id=self.guild_id))
-        print(f"Setup hook finished.")
+        logger.info("setup hook finished")
 
     async def on_ready(self):
-        print(f"{self.user} bot is ready.")
+        logger.info(f"{self.user} bot is ready.")
