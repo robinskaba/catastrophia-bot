@@ -132,7 +132,7 @@ class StatsCog(commands.Cog):
         )
         embed = Embed(title="", description=message, color=Color.blue())
 
-        await interaction.response.send(embed=embed)
+        await interaction.followup.send(embed=embed)
 
     @command(name="stats", description="Shows the player's leaderboards stats.")
     async def stats(self, interaction: Interaction, username: str) -> None:
