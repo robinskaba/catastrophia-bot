@@ -148,7 +148,7 @@ class StatsCog(commands.Cog):
 
         user = self.user_service.get_user(username)
         if not user:
-            await interaction.response.send_message(
+            await interaction.followup.send_message(
                 embed=Embed(
                     title=f"{username}'s leaderboard stats",
                     description="This player does not exist.",
