@@ -30,7 +30,7 @@ class FilterCog(commands.Cog):
             r"(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.+"
         )
         self._media_regex = re.compile(
-            r"\.(gif|png|jpe?g|webp|bmp|mp4|webm|mov)|tenor\.com/view|giphy\.com/media|imgur\.com",
+            r"\.(gif|png|jpe?g|webp|bmp|mp4|webm|mov)|tenor\.com/view|giphy\.com/media|imgur\.com|youtube\.com|youtu\.be",
             re.IGNORECASE,
         )
 
