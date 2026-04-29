@@ -1,4 +1,5 @@
 import json
+import logging
 from discord import Color, Embed, Interaction, Member, Object
 from discord.app_commands import command
 from discord.ext import commands, tasks
@@ -6,6 +7,8 @@ from src.core.services.user_service import UserService
 from src.config.config import Config
 from src.core.services.stats_service import StatsService
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 
 def _is_confidential(username: str) -> bool:
@@ -42,7 +45,6 @@ class StatsCog(commands.Cog):
     async def update_game_stats(self):
         game_stats = self.stats_service.get_game_stats()
         if not game_stats:
-            print("Failed to get game stats!")
             return
 
         playing_vc = self.bot.get_channel(Config.PLAYING_CHANNEL_ID)
@@ -52,14 +54,14 @@ class StatsCog(commands.Cog):
             try:
                 await playing_vc.edit(name=f"Playing: {game_stats.playing}")
             except Exception as e:
-                print(f"Missing Playing channel: {e}")
+                logger.error(f"missing Playing channel: {e}")
 
         if visits_vc:
             visits_count = f"{game_stats.visits / 1_000_000:.2f}M"
             try:
                 await visits_vc.edit(name=f"Visits: {visits_count}")
             except Exception as e:
-                print(f"Missing Visits channel: {e}")
+                logger.error(f"missing Visits channel: {e}")
 
     @tasks.loop(hours=24)
     async def show_top_playtimes(self):
@@ -71,7 +73,7 @@ class StatsCog(commands.Cog):
                 datetime.now(timezone.utc) - last_msg.created_at
             ).total_seconds()
             if created_seconds_ago < 23 * 3600:
-                print("Top playtimes already shown on bot start.")
+                logger.info("top playtimes already shown on bot start")
                 return
 
         await top_players_channel.purge()
