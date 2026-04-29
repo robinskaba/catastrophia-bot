@@ -1,6 +1,10 @@
+import logging
+
 import requests
 from src.config.config import Env
 from src.data.model.game_stats import GameStats
+
+logger = logging.getLogger(__name__)
 
 
 class GameDao:
@@ -12,11 +16,11 @@ class GameDao:
 
     def get_game_stats(self) -> GameStats | None:
         endpoint = f"{self.games_endpoint}?universeIds={Env.UNIVERSE_ID}"
-        response = requests.get(url=endpoint)
         try:
+            response = requests.get(url=endpoint)
             response.raise_for_status()
-        except requests.HTTPError as e:
-            print(e)
+        except requests.RequestException as e:
+            logger.error(f"problem fetching game stats: {e}")
             return -1
 
         return GameStats.from_dict(response.json()["data"][0])
