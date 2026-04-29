@@ -2,6 +2,8 @@ import logging
 
 from src.app.discord_bot import CatastrophiaBot
 
+logger = logging.getLogger(__name__)
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
@@ -10,7 +12,7 @@ if __name__ == "__main__":
         style="{",
     )
 
-    print("CatastrophiaBot is booting up...")
+    logger.info("CatastrophiaBot is booting up...")
     bot = CatastrophiaBot()
     bot.launch()
-    print("---------------------------------- powered down...")
+    logger.info("CatastrophiaBot is offline...")
