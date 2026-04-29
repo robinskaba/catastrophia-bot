@@ -1,6 +1,9 @@
 import logging
 
-_IGNORED_500_MESSAGES = ["WSServerHandshakeError: 520"]
+_IGNORED_500_MESSAGES = [
+    "WSServerHandshakeError: 520",
+    "Temporary failure in name resolution",
+]
 
 
 class IgnoreDiscord500Filter(logging.Filter):
