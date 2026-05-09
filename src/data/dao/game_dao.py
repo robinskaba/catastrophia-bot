@@ -21,6 +21,5 @@ class GameDao:
             response.raise_for_status()
         except requests.RequestException as e:
             logger.error(f"problem fetching game stats: {e}")
-            return -1
-
+            return None
         return GameStats.from_dict(response.json()["data"][0])
