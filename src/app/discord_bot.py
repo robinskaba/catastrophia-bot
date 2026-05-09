@@ -4,12 +4,13 @@ from aiohttp.connector import ClientConnectorError
 import discord
 from discord.ext import commands
 from discord import Intents
-
+from src.config.logging_filters import applyLoggingFilters
 from src.config.config import Env
 
 COGS_PATH = "src/app/cogs"
 
 logger = logging.getLogger(__name__)
+applyLoggingFilters()
 
 
 class CatastrophiaBot(commands.Bot):

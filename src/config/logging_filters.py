@@ -16,5 +16,8 @@ class IgnoreDiscord500Filter(logging.Filter):
         return True
 
 
-logging.getLogger("discord").addFilter(IgnoreDiscord500Filter())
-logging.getLogger("discord.gateway").addFilter(IgnoreDiscord500Filter())
+def applyLoggingFilters():
+    logging.getLogger("discord").addFilter(IgnoreDiscord500Filter())
+    logging.getLogger("discord.gateway").addFilter(IgnoreDiscord500Filter())
+    logging.getLogger("discord.client").setLevel(logging.WARNING)
+    logging.getLogger("discord.gateway").setLevel(logging.WARNING)
