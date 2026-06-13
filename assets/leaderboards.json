@@ -9,18 +9,20 @@
         "FarmedIronOre": "Farmed iron",
         "FarmedSulfurOre": "Farmed sulfur",
         "GrassCollected": "Grass collected",
-        "GoldenBerriesFound": "Golden berries"
+        "GoldenBerriesFound": "Golden berries",
+        "BerriesCollected": "Berries gathered"
     },
     "print_order": [
         "PlayersKilled",
         "AnimalsKilled",
         "DynamitesUsed",
         "PlacedBuildingParts",
-        "GoldenBerriesFound",
         "FarmedWood",
         "FarmedStone",
         "FarmedIronOre",
         "FarmedSulfurOre",
-        "GrassCollected"
+        "GrassCollected",
+        "GoldenBerriesFound",
+        "BerriesCollected"
     ]
 }
