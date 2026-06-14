@@ -67,7 +67,7 @@ class FilterCog(commands.Cog):
                 active_members.add(msg.author.id)
 
         for member in role.members:
-            creator = Creator.getOrCreate(member.id)
+            creator = Creator.get_or_create(member.id)
             role_given = datetime.fromtimestamp(creator.since, tz=timezone.utc)
             if now_utc - role_given < timedelta(
                 days=Config.CONTENT_CREATOR_INACTIVITY_MAX

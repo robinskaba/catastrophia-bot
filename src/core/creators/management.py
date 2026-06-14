@@ -28,10 +28,13 @@ class Creator:
 
     def save(self):
         creator_data[str(self.discord_id)] = {"since": self.since}
+        with open(CREATOR_DATA_FILE_PATH, "w") as write:
+            json.dump(creator_data, write, indent=4)
 
     @staticmethod
-    def getOrCreate(discord_id: int) -> Creator:
+    def get_or_create(discord_id: int) -> Creator:
         creator = Creator.get(discord_id)
         if not creator:
             creator = Creator(discord_id=discord_id, since=time.time())
+            creator.save()
         return creator
