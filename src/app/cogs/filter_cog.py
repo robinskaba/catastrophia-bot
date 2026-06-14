@@ -1,9 +1,11 @@
 from datetime import timedelta, timezone
 import logging
 import re
+import time
 from discord import Message, Object, datetime
 from discord.ext import commands, tasks
 
+from core.creators.management import Creator
 from src.config.config import Config, Env
 
 MEDIA_EXTENSIONS = (
@@ -54,16 +56,24 @@ class FilterCog(commands.Cog):
         if not channel or not role:
             return
 
-        three_months_ago = datetime.now(timezone.utc) - timedelta(
+        now_utc = datetime.now(timezone.utc)
+        max_inactivity_ago = now_utc - timedelta(
             days=Config.CONTENT_CREATOR_INACTIVITY_MAX
         )
         active_members = set()
 
-        async for msg in channel.history(limit=None, after=three_months_ago):
+        async for msg in channel.history(limit=None, after=max_inactivity_ago):
             if self._youtube_regex.search(msg.content):
                 active_members.add(msg.author.id)
 
         for member in role.members:
+            creator = Creator.getOrCreate(member.id)
+            role_given = datetime.fromtimestamp(creator.since, tz=timezone.utc)
+            if now_utc - role_given < timedelta(
+                days=Config.CONTENT_CREATOR_INACTIVITY_MAX
+            ):
+                continue  # creator is safe, because he received the role in the last 'CONTENT_CREATOR_INACTIVITY_MAX' days
+
             if member.id not in active_members:
                 logger.info(
                     f"member {member.name} lost his content creator status due to not posting for {Config.CONTENT_CREATOR_INACTIVITY_MAX} days."
