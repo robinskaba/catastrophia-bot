@@ -10,9 +10,8 @@ from discord import (
 from discord.ext import commands
 from discord.app_commands import Choice
 
-from src.core.services.stats_service import StatsService
-from src.core.services.user_service import UserService
-
+from src.core.stats.stats_service import StatsService
+from src.core.users.user_service import UserService
 
 logger = logging.getLogger(__name__)
 

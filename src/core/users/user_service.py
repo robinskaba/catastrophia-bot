@@ -1,9 +1,9 @@
-from src.data.dao.spender_dao import SpenderDao
-from src.data.model.roblox_user import RobloxUser
-from src.data.model.restriction import Restriction
 from src.data.dao.restrictions_dao import RestrictionsDao
-from src.data.model.user import User
+from src.data.dao.spender_dao import SpenderDao
 from src.data.dao.user_dao import UserDao
+from src.data.model.restriction import Restriction
+from src.data.model.roblox_user import RobloxUser
+from src.data.model.user import User
 
 
 class UserService:

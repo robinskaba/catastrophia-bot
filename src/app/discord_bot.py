@@ -4,8 +4,9 @@ from aiohttp.connector import ClientConnectorError
 import discord
 from discord.ext import commands
 from discord import Intents
-from src.config.logging_filters import applyLoggingFilters
+
 from src.config.config import Env
+from src.config.logging_filters import applyLoggingFilters
 
 COGS_PATH = "src/app/cogs"
 

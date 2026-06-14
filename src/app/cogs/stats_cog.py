@@ -3,10 +3,11 @@ import logging
 from discord import Color, Embed, Interaction, Member, Object
 from discord.app_commands import command
 from discord.ext import commands, tasks
-from src.core.services.user_service import UserService
 from src.config.config import Config
-from src.core.services.stats_service import StatsService
 from datetime import datetime, timezone
+
+from src.core.stats.stats_service import StatsService
+from src.core.users.user_service import UserService
 
 logger = logging.getLogger(__name__)
 

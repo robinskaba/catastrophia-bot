@@ -1,8 +1,8 @@
 from src.data.dao.game_dao import GameDao
-from src.data.model.game_stats import GameStats
 from src.data.dao.leaderboards_dao import LeaderboardsDao
 from src.data.dao.playtimes_dao import PlaytimesDao
 from src.data.dao.user_dao import UserDao
+from src.data.model.game_stats import GameStats
 
 
 class StatsService:

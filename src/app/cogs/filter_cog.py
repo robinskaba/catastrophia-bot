@@ -1,12 +1,10 @@
 from datetime import timedelta, timezone
 import logging
 import re
-import time
 from discord import Message, Object, datetime
 from discord.ext import commands, tasks
-
-from core.creators.management import Creator
 from src.config.config import Config, Env
+from src.core.creators.management import Creator
 
 MEDIA_EXTENSIONS = (
     ".gif",
@@ -48,12 +46,14 @@ class FilterCog(commands.Cog):
 
         guild = self.bot.get_guild(Env.GUILD_ID)
         if not guild:
+            logger.warning("no guild")
             return
 
         channel = self.bot.get_channel(Config.YOUTUBE_VIDEOS_CHANNEL_ID)
         role = guild.get_role(Config.CONTENT_CREATOR_ROLE_ID)
 
         if not channel or not role:
+            logger.warning("missing youtube channel or content creator role")
             return
 
         now_utc = datetime.now(timezone.utc)

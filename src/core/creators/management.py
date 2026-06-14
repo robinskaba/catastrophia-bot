@@ -1,5 +1,5 @@
-import json
 from __future__ import annotations
+import json
 import time
 
 CREATOR_DATA_FILE_PATH = "creators.json"
@@ -10,6 +10,7 @@ try:
 except FileNotFoundError:
     with open(CREATOR_DATA_FILE_PATH, "w") as write:
         json.dump({}, write, indent=4)
+    creator_data = {}
 
 
 class Creator:
