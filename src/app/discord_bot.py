@@ -6,12 +6,10 @@ from discord.ext import commands
 from discord import Intents
 
 from src.config.config import Env
-from src.config.logging_filters import applyLoggingFilters
 
 COGS_PATH = "src/app/cogs"
 
 logger = logging.getLogger(__name__)
-applyLoggingFilters()
 
 
 class CatastrophiaBot(commands.Bot):
