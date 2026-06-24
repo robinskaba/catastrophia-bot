@@ -114,15 +114,15 @@ class StatsCog(commands.Cog):
 
     @command(name="playtime", description="Shows the player's playtime.")
     async def playtime(self, interaction: Interaction, username: str) -> None:
+        await interaction.response.defer()
+
         # don't allow regular players find playtime for owners
         if _is_confidential(username) and not _is_owner(interaction.user):
-            await interaction.response.send_message(
+            await interaction.followup.send_message(
                 "This is confidential.",
                 ephemeral=True,
             )
             return
-
-        await interaction.response.defer()
 
         user = self.user_service.get_user(username)
         playtime = self.stats_service.get_player_playtime(user.name) if user else 0
@@ -139,15 +139,15 @@ class StatsCog(commands.Cog):
 
     @command(name="stats", description="Shows the player's leaderboards stats.")
     async def stats(self, interaction: Interaction, username: str) -> None:
+        await interaction.response.defer()
+
         # don't allow regular players find playtime for owners
         if _is_confidential(username) and not _is_owner(interaction.user):
-            await interaction.response.send_message(
+            await interaction.followup.send_message(
                 "This is confidential.",
                 ephemeral=True,
             )
             return
-
-        await interaction.response.defer()
 
         user = self.user_service.get_user(username)
         if not user:
