@@ -118,10 +118,7 @@ class StatsCog(commands.Cog):
 
         # don't allow regular players find playtime for owners
         if _is_confidential(username) and not _is_owner(interaction.user):
-            await interaction.followup.send_message(
-                "This is confidential.",
-                ephemeral=True,
-            )
+            await interaction.followup.send_message("This is confidential.")
             return
 
         user = self.user_service.get_user(username)
@@ -143,10 +140,7 @@ class StatsCog(commands.Cog):
 
         # don't allow regular players find playtime for owners
         if _is_confidential(username) and not _is_owner(interaction.user):
-            await interaction.followup.send_message(
-                "This is confidential.",
-                ephemeral=True,
-            )
+            await interaction.followup.send_message("This is confidential.")
             return
 
         user = self.user_service.get_user(username)
