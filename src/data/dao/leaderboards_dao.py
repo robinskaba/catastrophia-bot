@@ -1,6 +1,4 @@
 from argparse import ArgumentError
-from enum import Enum
-from datetime import date
 import requests
 from src.config.config import Config
 from src.data.dao.experience_dao import ExperienceDao
@@ -59,9 +57,3 @@ class LeaderboardsDao(ExperienceDao):
         except requests.HTTPError as e:
             return None
         return response.json()["value"]
-
-
-class LeaderboardCategory(Enum):
-    ALL_TIME = "AllTime"
-    YEARLY = "Yearly"
-    MONTHLY = "Monthly"
