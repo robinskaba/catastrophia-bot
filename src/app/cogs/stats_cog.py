@@ -218,7 +218,7 @@ class StatsCog(commands.Cog):
             stat_txt = f"**{full_name}**: "
             if leaderboard_key == "Playtime":
                 if value < 60:
-                    stat_txt += "played less than 1 hour"
+                    stat_txt += "less than 1 hour"
                 else:
                     stat_txt += f"{value // 60} hours and {value % 60} minutes"
             else:
