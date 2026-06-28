@@ -180,7 +180,7 @@ class StatsCog(commands.Cog):
 
         await interaction.followup.send(embed=embed)
 
-    @command(name="stats", description="Shows the player's leaderboards stats.")
+    @command(name="stats", description="Shows the player's statistics.")
     @describe(
         username="Whose stats to display (case insensitive).",
         year="Unspecified year or month means all time statistics.",
