@@ -1,6 +1,6 @@
 from requests import HTTPError, get
 
-from src.config.config import Config, Env
+from src.config.config import Config
 from src.data.dao.experience_dao import ExperienceDao
 
 
