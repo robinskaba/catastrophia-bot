@@ -10,19 +10,27 @@
         "FarmedSulfurOre": "Farmed sulfur",
         "GrassCollected": "Grass collected",
         "GoldenBerriesFound": "Golden berries",
-        "BerriesCollected": "Berries gathered"
+        "BerriesCollected": "Berries gathered",
+        "SoldiersKilled": "Soldiers killed",
+        "ZombiesKilled": "Zombies killed",
+        "GhostsKilled": "GhostsKilled",
+        "Playtime": "Playtime"
     },
     "print_order": [
-        "PlayersKilled",
-        "AnimalsKilled",
-        "DynamitesUsed",
-        "PlacedBuildingParts",
+        "Playtime",
         "FarmedWood",
         "FarmedStone",
         "FarmedIronOre",
         "FarmedSulfurOre",
         "GrassCollected",
         "GoldenBerriesFound",
-        "BerriesCollected"
+        "BerriesCollected",
+        "DynamitesUsed",
+        "PlacedBuildingParts",
+        "PlayersKilled",
+        "AnimalsKilled",
+        "SoldiersKilled",
+        "ZombiesKilled",
+        "GhostsKilled"
     ]
 }

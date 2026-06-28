@@ -1,6 +1,6 @@
 from requests import HTTPError, get
 
-from src.config.config import Env
+from src.config.config import Config, Env
 from src.data.dao.experience_dao import ExperienceDao
 
 
@@ -9,7 +9,7 @@ class PlaytimesDao(ExperienceDao):
     def __init__(self):
         super().__init__()
 
-        self.playtimes_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Env.PLAYTIMES_DATASTORE_NAME}/scopes/global/entries"
+        self.playtimes_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Config.PLAYTIMES_DATASTORE_NAME}/scopes/global/entries"
 
     def getTop(self, limit: int = 100) -> list[tuple[str, int]]:
         response = get(

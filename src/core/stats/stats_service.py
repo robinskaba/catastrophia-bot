@@ -1,5 +1,7 @@
+from datetime import UTC, date, datetime
+import logging
 from src.data.dao.game_dao import GameDao
-from src.data.dao.leaderboards_dao import LeaderboardsDao
+from src.data.dao.leaderboards_dao import LeaderboardCategory, LeaderboardsDao
 from src.data.dao.playtimes_dao import PlaytimesDao
 from src.data.dao.user_dao import UserDao
 from src.data.model.game_stats import GameStats
@@ -23,17 +25,17 @@ class StatsService:
         playtime = self.playtimes_dao.get(username)
         return playtime if playtime else 0
 
-    def get_player_stats(self, user_id: str) -> dict:
-        leaderboards_stats = self.leaderboards_dao.get_leaderboard_for_player(user_id)
-        leaderboards_stats = leaderboards_stats if leaderboards_stats else []
-
-        stats = {}
-
-        for entry in leaderboards_stats:
-            leaderboard_name, value = entry
-            stats[leaderboard_name] = value
-
-        return stats
+    def get_player_stats(
+        self, user_id: str, month: int | None, year: int | None
+    ) -> dict | None:
+        player_stats = self.leaderboards_dao.get_player_stats(user_id)
+        if not player_stats:
+            return None
+        if not month and not year:
+            return player_stats["AllTime"]
+        if month:
+            return player_stats["Monthly"].get(f"{month:02d}_{year}")
+        return player_stats["Yearly"].get(f"{year}")
 
     def get_top_playtimes(self) -> list[tuple]:
         top_times_data = self.playtimes_dao.getTop()
@@ -47,24 +49,50 @@ class StatsService:
 
         return top_times
 
-    def get_top_leaderboard(self, leaderboard_key: str) -> list[dict]:
-        all_top10 = self.leaderboards_dao.get_leaderboards_top_10()
-        if not all_top10:
-            return {}
+    def get_top_leaderboard(
+        self, leaderboard_key: str, month: int | None = None, year: int | None = None
+    ) -> list[tuple] | None:
+        leaderboards = {}
 
-        leaderboard_top10 = all_top10[leaderboard_key]
+        # leaderboards data is in the common record
+        current_date = datetime.now(tz=UTC)
+        if (not month and not year) or (
+            (
+                month
+                and year
+                and month == current_date.month
+                and year == current_date.year
+            )
+            or (not month and year and year == current_date.year)
+        ):
+            live_record = self.leaderboards_dao.get_live_leaderboards_top10()
+            if not live_record:
+                return None
+            if not month and not year:
+                leaderboards = live_record["AllTime"]
+            elif not month and year:
+                leaderboards = live_record["Yearly"]
+            else:
+                leaderboards = live_record["Monthly"]
+        else:
+            leaderboards = self.leaderboards_dao.get_past_leaderboards_top10(
+                month=month, year=year
+            )
+            if not leaderboards:
+                return None
 
+        leaderboard = leaderboards[leaderboard_key]
         results = []
         cached_usernames = {}
-        for entry in leaderboard_top10:
-            user_id, value = entry
+        for entry in leaderboard:
+            user_id, value = entry["UserId"], entry["Count"]
             username = cached_usernames.get(user_id)
             if not username:
                 user = self.user_dao.get_roblox_user(user_id)
                 username = user.name if user else "MISSING"
                 cached_usernames[user_id] = username
 
-            results.append({username: value})
+            results.append((username, value))
 
         return results
 

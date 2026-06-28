@@ -1,5 +1,4 @@
 import logging
-
 from src.app.discord_bot import CatastrophiaBot
 from src.config.logging_filters import apply_logging_filters
 
