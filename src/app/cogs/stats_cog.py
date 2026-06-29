@@ -277,7 +277,7 @@ class StatsCog(commands.Cog):
             leaderboard_txt += f"{line}\n"
         leaderboard_txt = leaderboard_txt[:-1]
 
-        embed = Embed(title=title, description=leaderboard_txt, color=Color.yellow())
+        embed = Embed(title=title, description=leaderboard_txt, color=Color.random())
         await interaction.followup.send(embed=embed)
 
 
