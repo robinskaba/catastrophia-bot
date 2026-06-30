@@ -13,7 +13,7 @@
         "BerriesCollected": "Berries gathered",
         "SoldiersKilled": "Soldiers killed",
         "ZombiesKilled": "Zombies killed",
-        "GhostsKilled": "GhostsKilled",
+        "GhostsKilled": "Ghosts killed",
         "Playtime": "Playtime"
     },
     "print_order": [
