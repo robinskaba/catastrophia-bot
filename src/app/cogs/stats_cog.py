@@ -179,7 +179,7 @@ class StatsCog(commands.Cog):
 
         # don't allow regular players find playtime for owners
         if _is_confidential(username) and not _is_owner(interaction.user):
-            await interaction.followup.send_message("This is confidential.")
+            await interaction.followup.send("This is confidential.")
             return
 
         title_range_suffix = _range_suffix(month=month, year=year)
