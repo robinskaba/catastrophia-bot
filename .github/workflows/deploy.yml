@@ -13,15 +13,25 @@ jobs:
 
       - uses: tailscale/github-action@v4
         with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          oauth-client-id: ${{secrets.TS_OAUTH_CLIENT_ID}}
+          oauth-secret: ${{secrets.TS_OAUTH_SECRET}}
           tags: tag:ci
+
+      - name: Allow insecure registry
+        run: |
+          sudo mkdir -p /etc/docker
+          if [ ! -f /etc/docker/daemon.json ]; then
+            echo '{}' | sudo tee /etc/docker/daemon.json
+          fi
+          sudo jq '. += {"insecure-registries": ["${{secrets.SERVER_IP}}:5000"]}' /etc/docker/daemon.json > daemon.json.tmp
+          sudo mv daemon.json.tmp /etc/docker/daemon.json
+          sudo systemctl restart docker
 
       - uses: docker/login-action@v3
         with:
           registry: ${{secrets.SERVER_IP}}:5000
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          username: ${{secrets.REGISTRY_USERNAME}}
+          password: ${{secrets.REGISTRY_PASSWORD}}
 
       - uses: docker/build-push-action@v6
         with:
