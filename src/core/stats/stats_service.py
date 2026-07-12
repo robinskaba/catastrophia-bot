@@ -1,9 +1,13 @@
 from datetime import UTC, datetime
+import logging
+from src.core.stats.stats_dao import StatsDao
 from src.data.http.game_dao import GameDao
 from src.data.http.leaderboards_dao import LeaderboardsDao
 from src.data.http.playtimes_dao import PlaytimesDao
 from src.data.http.user_dao import UserDao
 from src.data.model.game_stats import GameStats
+
+_logger = logging.getLogger(__name__)
 
 
 class StatsService:
@@ -19,6 +23,8 @@ class StatsService:
         self.leaderboards_dao = LeaderboardsDao()
         self.user_dao = UserDao()
         self.game_dao = GameDao()
+
+        self.stats_dao = StatsDao()
 
     def get_player_playtime(self, username: str) -> int:
         playtime = self.playtimes_dao.get(username)
@@ -97,3 +103,19 @@ class StatsService:
 
     def get_game_stats(self) -> GameStats | None:
         return self.game_dao.get_game_stats()
+
+    def save_stat_search(self, discord_id: int, rbx_username: str):
+        self.stats_dao.save_stats_search(discord_id, rbx_username)
+
+    def get_predicted_usernames_from_searches(
+        self, discord_id: int
+    ) -> list[tuple[str, float]] | None:
+        searches = self.stats_dao.get_search_counts_by_discord_id_for_username(
+            discord_id
+        )
+        if len(searches) < 1:
+            return None
+
+        total = sum(x[1] for x in searches)
+        searches.sort(key=lambda a: a[1], reverse=True)
+        return [(username, count / total * 100) for username, count in searches]

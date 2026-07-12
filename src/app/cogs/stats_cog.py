@@ -1,14 +1,17 @@
 import calendar
 import json
 import logging
+import stat
 from discord import Color, Embed, Interaction, Member, Object
 from discord.app_commands import autocomplete, choices, command, describe, Choice
 from discord.ext import commands, tasks
 from src.config.config import Config
 from datetime import UTC, datetime, timezone
 
+from src.core.stats.stats_dao import StatsDao
 from src.core.stats.stats_service import StatsService
 from src.core.users.user_service import UserService
+from src.data.database.database import Database
 
 _logger = logging.getLogger(__name__)
 
@@ -229,6 +232,7 @@ class StatsCog(commands.Cog):
         embed = Embed(title=title, color=Color.green(), description=stats_txt)
         embed.set_thumbnail(url=self.user_service.get_user_thumbnail_url(user))
         await interaction.followup.send(embed=embed)
+        self.stats_service.save_stat_search(interaction.user.id, user.name)
 
     @command(
         name="leaderboards", description="Shows the top 10 players on a leaderboard."

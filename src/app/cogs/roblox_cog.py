@@ -5,10 +5,12 @@ from discord import (
     Embed,
     Interaction,
     Object,
+    User,
     app_commands,
 )
 from discord.ext import commands
 from discord.app_commands import Choice
+from pyparsing import col
 
 from src.core.stats.stats_service import StatsService
 from src.core.users.user_service import UserService
@@ -187,6 +189,40 @@ class RobloxCog(commands.Cog):
 
         if success:
             logger.info(f"@{interaction.user.name} unbanned roblox user '{user.name}'")
+
+    @app_commands.command(
+        name="predict-username",
+        description="Predicts Discord user's Roblox username from his /stats searches.",
+    )
+    async def predict_username(self, interaction: Interaction, user: User):
+        await interaction.response.defer(ephemeral=True)
+
+        title = f"{user.name}'s Roblox username"
+        username_probabilities = (
+            self.stats_service.get_predicted_usernames_from_searches(user.id)
+        )
+        if not username_probabilities:
+            await interaction.followup.send(
+                embed=Embed(
+                    title=title,
+                    description=f"No /stats usage recorded",
+                    color=Color.red(),
+                ),
+                ephemeral=True,
+            )
+            return
+
+        del username_probabilities[3:]
+        await interaction.followup.send(
+            embed=Embed(
+                title=title,
+                description="\n".join(
+                    f"{name}: {prob:.2f}%" for name, prob in username_probabilities
+                ),
+                color=Color.yellow(),
+            ),
+            ephemeral=True,
+        )
 
 
 async def setup(bot: commands.Bot) -> None:

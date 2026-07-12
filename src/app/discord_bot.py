@@ -6,6 +6,7 @@ from discord.ext import commands
 from discord import Intents
 
 from src.config.config import Env
+from src.data.database.database import Database
 
 COGS_PATH = "src/app/cogs"
 
