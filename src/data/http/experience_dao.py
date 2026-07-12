@@ -1,4 +1,4 @@
-from src.data.dao.base_dao import BaseDao
+from src.data.http.base_dao import BaseDao
 from src.config.config import Env
 
 

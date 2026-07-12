@@ -1,8 +1,8 @@
 from datetime import UTC, datetime
-from src.data.dao.game_dao import GameDao
-from src.data.dao.leaderboards_dao import LeaderboardsDao
-from src.data.dao.playtimes_dao import PlaytimesDao
-from src.data.dao.user_dao import UserDao
+from src.data.http.game_dao import GameDao
+from src.data.http.leaderboards_dao import LeaderboardsDao
+from src.data.http.playtimes_dao import PlaytimesDao
+from src.data.http.user_dao import UserDao
 from src.data.model.game_stats import GameStats
 
 

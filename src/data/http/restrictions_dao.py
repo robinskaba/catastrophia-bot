@@ -1,7 +1,7 @@
 from discord import datetime
 import requests
 from src.data.model.restriction import Restriction
-from src.data.dao.experience_dao import ExperienceDao
+from src.data.http.experience_dao import ExperienceDao
 
 
 class RestrictionsDao(ExperienceDao):

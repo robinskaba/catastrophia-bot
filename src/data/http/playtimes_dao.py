@@ -1,7 +1,7 @@
 from requests import HTTPError, get
 
 from src.config.config import Config
-from src.data.dao.experience_dao import ExperienceDao
+from src.data.http.experience_dao import ExperienceDao
 
 
 class PlaytimesDao(ExperienceDao):

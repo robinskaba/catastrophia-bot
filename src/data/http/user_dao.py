@@ -1,7 +1,7 @@
 import requests
 
 from src.data.model.roblox_user import RobloxUser
-from src.data.dao.base_dao import BaseDao
+from src.data.http.base_dao import BaseDao
 from src.data.model.user import User
 
 
