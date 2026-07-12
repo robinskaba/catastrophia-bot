@@ -1,4 +1,5 @@
-import datetime
+import asyncio
+from datetime import datetime
 import logging
 from discord import Interaction, Member, Object, TextChannel, User, app_commands
 import discord
@@ -83,6 +84,36 @@ class ManagerCog(commands.Cog):
         )
 
         await member.ban(delete_message_seconds=delete_messages.value, reason=reason)
+
+    @app_commands.command(
+        name="repeat",
+        description="Set a message to be repeated by the bot every {frequency} hours for {duration} hours.",
+    )
+    @app_commands.describe(
+        message="Message to be repeated",
+        frequency="Delay between messages (in hours)",
+        duration="After how many hours will the repeating stop",
+    )
+    async def repeat(
+        self, interaction: Interaction, message: str, frequency: int, duration: int
+    ):
+        if frequency <= 0:
+            await interaction.response.send_message(
+                "Frequency must >= 1", ephemeral=True
+            )
+            return
+
+        async def repeat_message():
+            hours_elapsed = 0
+            while hours_elapsed < duration:
+                await asyncio.sleep(frequency * 3600)
+                await interaction.channel.send(message)
+                hours_elapsed += frequency
+
+        asyncio.create_task(repeat_message())
+        await interaction.response.send_message(
+            f"Your message will be repeated every {frequency} hours for {duration} hours."
+        )
 
 
 async def setup(bot: commands.Bot) -> None:
