@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 
-_DATABASE_PATH = "catastrophia-bot.db"
+_DATABASE_PATH = "data/catastrophia-bot.db"
 _SCHEMA_PATH = "src/common/database/schema.sql"
 
 _logger = logging.getLogger(__name__)
