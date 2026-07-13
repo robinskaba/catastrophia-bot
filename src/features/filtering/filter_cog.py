@@ -3,8 +3,8 @@ import logging
 import re
 from discord import Message, Object, datetime
 from discord.ext import commands, tasks
-from src.config.config import Config, Env
-from src.core.creators.management import Creator
+from src.common.config.config import Config, Env
+from src.features.creators.management import Creator
 
 MEDIA_EXTENSIONS = (
     ".gif",

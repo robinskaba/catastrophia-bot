@@ -1,11 +1,11 @@
 from datetime import UTC, datetime
 import logging
-from src.core.stats.stats_dao import StatsDao
-from src.data.http.game_dao import GameDao
-from src.data.http.leaderboards_dao import LeaderboardsDao
-from src.data.http.playtimes_dao import PlaytimesDao
-from src.data.http.user_dao import UserDao
-from src.data.model.game_stats import GameStats
+from src.features.stats.daos.stats_dao import StatsDao
+from src.features.stats.clients.game_client import GameClient
+from src.features.stats.clients.leaderboards_client import LeaderboardsClient
+from src.features.stats.clients.playtimes_client import PlaytimesClient
+from src.features.stats.model.game_stats import GameStats
+from src.features.users.clients.user_client import UserClient
 
 _logger = logging.getLogger(__name__)
 
@@ -19,10 +19,10 @@ class StatsService:
         return cls._instance
 
     def __init__(self):
-        self.playtimes_dao = PlaytimesDao()
-        self.leaderboards_dao = LeaderboardsDao()
-        self.user_dao = UserDao()
-        self.game_dao = GameDao()
+        self.playtimes_dao = PlaytimesClient()
+        self.leaderboards_dao = LeaderboardsClient()
+        self.user_dao = UserClient()
+        self.game_dao = GameClient()
 
         self.stats_dao = StatsDao()
 

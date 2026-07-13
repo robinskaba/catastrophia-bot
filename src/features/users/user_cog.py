@@ -10,10 +10,9 @@ from discord import (
 )
 from discord.ext import commands
 from discord.app_commands import Choice
-from pyparsing import col
 
-from src.core.stats.stats_service import StatsService
-from src.core.users.user_service import UserService
+from src.features.stats.stats_service import StatsService
+from src.features.users.user_service import UserService
 
 logger = logging.getLogger(__name__)
 

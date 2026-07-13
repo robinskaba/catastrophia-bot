@@ -1,4 +1,4 @@
-from src.data.database.database import Database
+from src.common.database.database import Database
 
 
 class StatsDao:

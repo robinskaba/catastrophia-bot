@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 
-from src.data.model.user import User
+from src.features.users.model.user import User
 
 
 class RobloxUser(User):

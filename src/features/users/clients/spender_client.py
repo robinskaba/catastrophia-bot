@@ -1,9 +1,9 @@
 import requests
-from src.config.config import Config
-from src.data.http.experience_dao import ExperienceDao
+from src.common.config.config import Config
+from src.features.users.clients.experience_client import ExperienceClient
 
 
-class SpenderDao(ExperienceDao):
+class SpenderClient(ExperienceClient):
 
     def __init__(self):
         super().__init__()

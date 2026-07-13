@@ -1,8 +1,8 @@
-from src.data.http.base_dao import BaseDao
-from src.config.config import Env
+from src.common.http.base_client import BaseClient
+from src.common.config.config import Env
 
 
-class ExperienceDao(BaseDao):
+class ExperienceClient(BaseClient):
 
     def __init__(self):
         super().__init__()

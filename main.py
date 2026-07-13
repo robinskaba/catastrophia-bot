@@ -1,7 +1,7 @@
 import logging
-from src.app.discord_bot import CatastrophiaBot
-from src.config.logging_filters import apply_logging_filters
-from src.data.database.database import Database
+from src.common.bot import CatastrophiaBot
+from src.common.config.logging_filters import apply_logging_filters
+from src.common.database.database import Database
 
 logger = logging.getLogger(__name__)
 

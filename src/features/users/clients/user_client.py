@@ -1,11 +1,11 @@
 import requests
 
-from src.data.model.roblox_user import RobloxUser
-from src.data.http.base_dao import BaseDao
-from src.data.model.user import User
+from src.features.users.model.roblox_user import RobloxUser
+from src.common.http.base_client import BaseClient
+from src.features.users.model.user import User
 
 
-class UserDao(BaseDao):
+class UserClient(BaseClient):
 
     def __init__(self):
         super().__init__()

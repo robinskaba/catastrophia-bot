@@ -1,13 +1,13 @@
 import logging
 
 import requests
-from src.config.config import Env
-from src.data.model.game_stats import GameStats
+from src.common.config.config import Env
+from src.features.stats.model.game_stats import GameStats
 
 logger = logging.getLogger(__name__)
 
 
-class GameDao:
+class GameClient:
 
     def __init__(self):
         super().__init__()

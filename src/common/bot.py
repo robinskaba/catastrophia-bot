@@ -5,10 +5,9 @@ import discord
 from discord.ext import commands
 from discord import Intents
 
-from src.config.config import Env
-from src.data.database.database import Database
+from src.common.config.config import Env
 
-COGS_PATH = "src/app/cogs"
+_FEATURES_PATH = "src/features"
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +29,17 @@ class CatastrophiaBot(commands.Bot):
             logger.error(f"failed to connect bot due to ClientConnectorError! {e}")
 
     async def setup_hook(self):
-        # load cogs
-        for file in os.listdir(COGS_PATH):
-            if not file.endswith(".py"):
-                continue
+        for feature_folder in os.listdir(_FEATURES_PATH):
+            feature_dir = os.path.join(_FEATURES_PATH, feature_folder)
 
-            name = file[:-3]
-            await self.load_extension(f"src.app.cogs.{name}")
+            if os.path.isdir(feature_dir):
+                for file in os.listdir(feature_dir):
+                    if file.endswith("cog.py"):  # cog file detection
+                        module_name = file[:-3]  # remove .py from end of file name
+
+                        await self.load_extension(
+                            f"{_FEATURES_PATH.replace("/", ".")}.{feature_folder}.{module_name}"
+                        )
 
         await self.tree.sync(guild=discord.Object(id=self.guild_id))
         logger.info("setup hook finished")

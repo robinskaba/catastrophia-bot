@@ -1,10 +1,10 @@
 from requests import HTTPError, get
 
-from src.config.config import Config
-from src.data.http.experience_dao import ExperienceDao
+from src.common.config.config import Config
+from src.features.users.clients.experience_client import ExperienceClient
 
 
-class PlaytimesDao(ExperienceDao):
+class PlaytimesClient(ExperienceClient):
 
     def __init__(self):
         super().__init__()

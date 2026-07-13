@@ -5,13 +5,13 @@ import stat
 from discord import Color, Embed, Interaction, Member, Object
 from discord.app_commands import autocomplete, choices, command, describe, Choice
 from discord.ext import commands, tasks
-from src.config.config import Config
+from src.common.config.config import Config
 from datetime import UTC, datetime, timezone
 
-from src.core.stats.stats_dao import StatsDao
-from src.core.stats.stats_service import StatsService
-from src.core.users.user_service import UserService
-from src.data.database.database import Database
+from src.features.stats.daos.stats_dao import StatsDao
+from src.features.stats.stats_service import StatsService
+from src.features.users.user_service import UserService
+from src.common.database.database import Database
 
 _logger = logging.getLogger(__name__)
 

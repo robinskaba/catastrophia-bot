@@ -1,9 +1,9 @@
-from src.data.http.restrictions_dao import RestrictionsDao
-from src.data.http.spender_dao import SpenderDao
-from src.data.http.user_dao import UserDao
-from src.data.model.restriction import Restriction
-from src.data.model.roblox_user import RobloxUser
-from src.data.model.user import User
+from src.features.users.clients.restrictions_client import RestrictionsClient
+from src.features.users.clients.spender_client import SpenderClient
+from src.features.users.model.restriction import Restriction
+from src.features.users.model.roblox_user import RobloxUser
+from src.features.users.model.user import User
+from src.features.users.clients.user_client import UserClient
 
 
 class UserService:
@@ -15,9 +15,9 @@ class UserService:
         return cls._instance
 
     def __init__(self):
-        self.user_dao = UserDao()
-        self.restrictions_dao = RestrictionsDao()
-        self.spender_dao = SpenderDao()
+        self.user_dao = UserClient()
+        self.restrictions_dao = RestrictionsClient()
+        self.spender_dao = SpenderClient()
 
     def get_user(self, username: str) -> User | None:
         return self.user_dao.get_user_from_username(username)

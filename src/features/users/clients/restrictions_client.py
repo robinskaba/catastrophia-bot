@@ -1,10 +1,10 @@
 from discord import datetime
 import requests
-from src.data.model.restriction import Restriction
-from src.data.http.experience_dao import ExperienceDao
+from src.features.users.model.restriction import Restriction
+from src.features.users.clients.experience_client import ExperienceClient
 
 
-class RestrictionsDao(ExperienceDao):
+class RestrictionsClient(ExperienceClient):
 
     def __init__(self):
         super().__init__()

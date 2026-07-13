@@ -1,7 +1,7 @@
-from src.config.config import Env
+from src.common.config.config import Env
 
 
-class BaseDao:
+class BaseClient:
 
     def __init__(self):
         api_key = Env.API_KEY
