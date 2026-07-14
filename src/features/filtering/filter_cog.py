@@ -4,7 +4,7 @@ import re
 from discord import Message, Object, datetime
 from discord.ext import commands, tasks
 from src.common.config.config import Config, Env
-from src.features.creators.management import Creator
+from src.features.filtering.services.creator_service import CreatorService
 
 MEDIA_EXTENSIONS = (
     ".gif",
@@ -25,7 +25,7 @@ class FilterCog(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
+        self._creator_service = CreatorService()
         self._youtube_regex = re.compile(
             r"(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.+"
         )
@@ -67,7 +67,7 @@ class FilterCog(commands.Cog):
                 active_members.add(msg.author.id)
 
         for member in role.members:
-            creator = Creator.get_or_create(member.id)
+            creator = self._creator_service.get_or_create(member.id)
             role_given = datetime.fromtimestamp(creator.since, tz=timezone.utc)
             if now_utc - role_given < timedelta(
                 days=Config.CONTENT_CREATOR_INACTIVITY_MAX
