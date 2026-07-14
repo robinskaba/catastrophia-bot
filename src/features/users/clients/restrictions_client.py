@@ -9,10 +9,10 @@ class RestrictionsClient(ExperienceClient):
     def __init__(self):
         super().__init__()
 
-        self.user_restriction_endpoint = f"{self.base_endpoint}/user-restrictions"
+        self._user_restriction_endpoint = f"{self.base_endpoint}/user-restrictions"
 
     def get_user_restrictions(self, user_id: str) -> list[Restriction] | None:
-        endpoint = f"{self.user_restriction_endpoint}:listLogs"
+        endpoint = f"{self._user_restriction_endpoint}:listLogs"
         params = {"filter": f"user == 'users/{user_id}'"}
         response = requests.get(url=endpoint, params=params, headers=self.headers)
 
@@ -41,7 +41,7 @@ class RestrictionsClient(ExperienceClient):
     def add_user_restriction(
         self, user_id: str, reason: str, duration_in_days: int | None, exclude_alt=False
     ) -> bool:
-        endpoint = f"{self.user_restriction_endpoint}/{user_id}"
+        endpoint = f"{self._user_restriction_endpoint}/{user_id}"
         data = {
             "gameJoinRestriction": {
                 "active": True,
@@ -62,7 +62,7 @@ class RestrictionsClient(ExperienceClient):
             return False
 
     def remove_user_restriction(self, user_id: str) -> bool:
-        endpoint = f"{self.user_restriction_endpoint}/{user_id}"
+        endpoint = f"{self._user_restriction_endpoint}/{user_id}"
 
         data = {
             "gameJoinRestriction": {

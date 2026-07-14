@@ -18,13 +18,13 @@ MEDIA_EXTENSIONS = (
     ".mov",
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class FilterCog(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
-        self.bot = bot
+        self._bot = bot
         self._creator_service = CreatorService()
         self._youtube_regex = re.compile(
             r"(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.+"
@@ -42,18 +42,18 @@ class FilterCog(commands.Cog):
 
     @tasks.loop(hours=24)
     async def check_inactive_creators(self):
-        await self.bot.wait_until_ready()
+        await self._bot.wait_until_ready()
 
-        guild = self.bot.get_guild(Env.GUILD_ID)
+        guild = self._bot.get_guild(Env.GUILD_ID)
         if not guild:
-            logger.warning("no guild")
+            _logger.warning("no guild")
             return
 
-        channel = self.bot.get_channel(Config.YOUTUBE_VIDEOS_CHANNEL_ID)
+        channel = self._bot.get_channel(Config.YOUTUBE_VIDEOS_CHANNEL_ID)
         role = guild.get_role(Config.CONTENT_CREATOR_ROLE_ID)
 
         if not channel or not role:
-            logger.warning("missing youtube channel or content creator role")
+            _logger.warning("missing youtube channel or content creator role")
             return
 
         now_utc = datetime.now(timezone.utc)
@@ -75,7 +75,7 @@ class FilterCog(commands.Cog):
                 continue  # creator is safe, because he received the role in the last 'CONTENT_CREATOR_INACTIVITY_MAX' days
 
             if member.id not in active_members:
-                logger.info(
+                _logger.info(
                     f"member {member.name} lost his content creator status due to not posting for {Config.CONTENT_CREATOR_INACTIVITY_MAX} days."
                 )
                 await member.remove_roles(role)
@@ -102,7 +102,7 @@ class FilterCog(commands.Cog):
                 f"{message.author.mention}, this channel is for **youtube videos only!**",
                 delete_after=10,
             )
-            logger.info(
+            _logger.info(
                 f"removed non-youtube link message from @{message.author.name}: '{message.content}'"
             )
 
@@ -131,7 +131,7 @@ class FilterCog(commands.Cog):
                 f"{message.author.mention}, don't try to sneak media in this channel!",
                 delete_after=5,
             )
-            logger.info(
+            _logger.info(
                 f"removed sneaky media in #{message.channel.name} from @{message.author.name}"
             )
             return True

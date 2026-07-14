@@ -9,11 +9,11 @@ class PlaytimesClient(ExperienceClient):
     def __init__(self):
         super().__init__()
 
-        self.playtimes_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Config.PLAYTIMES_DATASTORE_NAME}/scopes/global/entries"
+        self._playtimes_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Config.PLAYTIMES_DATASTORE_NAME}/scopes/global/entries"
 
     def getTop(self, limit: int = 100) -> list[tuple[str, int]]:
         response = get(
-            url=self.playtimes_endpoint,
+            url=self._playtimes_endpoint,
             headers=self.headers,
             params={"orderBy": "value desc", "maxPageSize": limit},
         )
@@ -27,7 +27,7 @@ class PlaytimesClient(ExperienceClient):
             return [(entry["id"], entry["value"]) for entry in entries]
 
     def get(self, username: str) -> int | None:
-        endpoint = self.playtimes_endpoint + "/" + username
+        endpoint = self._playtimes_endpoint + "/" + username
         response = get(url=endpoint, headers=self.headers)
 
         try:

@@ -8,10 +8,10 @@ class SpenderClient(ExperienceClient):
     def __init__(self):
         super().__init__()
 
-        self.spender_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Config.SPENDERS_DATASTORE_NAME}/scopes/global/entries"
+        self._spender_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Config.SPENDERS_DATASTORE_NAME}/scopes/global/entries"
 
     def get_roblox_spent(self, username: str) -> int:
-        endpoint = self.spender_endpoint + "/" + username
+        endpoint = self._spender_endpoint + "/" + username
         response = requests.get(url=endpoint, headers=self.headers)
 
         try:

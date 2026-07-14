@@ -1,17 +1,14 @@
 import calendar
 import json
 import logging
-import stat
 from discord import Color, Embed, Interaction, Member, Object
 from discord.app_commands import autocomplete, choices, command, describe, Choice
 from discord.ext import commands, tasks
 from src.common.config.config import Config
 from datetime import UTC, datetime, timezone
 
-from src.features.stats.daos.stats_dao import StatsDao
-from src.features.stats.stats_service import StatsService
-from src.features.users.user_service import UserService
-from src.common.database.database import Database
+from src.features.stats.services.stats_service import StatsService
+from src.features.users.services.user_service import UserService
 
 _logger = logging.getLogger(__name__)
 
@@ -25,9 +22,9 @@ def _is_owner(member: Member) -> bool:
 
 
 with open("assets/leaderboards.json", "r") as read:
-    data = json.load(read)
-    _LEADERBOARD_NAME_ORDER = data["print_order"]
-    _LEADERBOARD_FULL_NAMES = data["names"]
+    _data = json.load(read)
+    _LEADERBOARD_NAME_ORDER = _data["print_order"]
+    _LEADERBOARD_FULL_NAMES = _data["names"]
 
 _MONTHS_CHOICES = [
     Choice(name="January", value=1),
@@ -78,10 +75,10 @@ def _format_leaderboard_value(leaderboard: str, value: int) -> str:
 class StatsCog(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
-        self.bot = bot
+        self._bot = bot
 
-        self.stats_service = StatsService()
-        self.user_service = UserService()
+        self._stats_service = StatsService()
+        self._user_service = UserService()
 
     async def cog_load(self):
         self.show_top_playtimes.start()
@@ -93,12 +90,12 @@ class StatsCog(commands.Cog):
 
     @tasks.loop(minutes=10)
     async def update_game_stats(self):
-        game_stats = self.stats_service.get_game_stats()
+        game_stats = self._stats_service.get_game_stats()
         if not game_stats:
             return
 
-        playing_vc = self.bot.get_channel(Config.PLAYING_CHANNEL_ID)
-        visits_vc = self.bot.get_channel(Config.VISITS_CHANNEL_ID)
+        playing_vc = self._bot.get_channel(Config.PLAYING_CHANNEL_ID)
+        visits_vc = self._bot.get_channel(Config.VISITS_CHANNEL_ID)
 
         if playing_vc:
             try:
@@ -115,7 +112,7 @@ class StatsCog(commands.Cog):
 
     @tasks.loop(hours=24)
     async def show_top_playtimes(self):
-        top_players_channel = self.bot.get_channel(Config.TOP_PLAYERS_CHANNEL_ID)
+        top_players_channel = self._bot.get_channel(Config.TOP_PLAYERS_CHANNEL_ID)
         messages = [message async for message in top_players_channel.history(limit=1)]
         last_msg = messages[0] if messages and len(messages) > 0 else None
         if last_msg:
@@ -128,7 +125,7 @@ class StatsCog(commands.Cog):
 
         await top_players_channel.purge()
 
-        top_times: list[tuple] = self.stats_service.get_top_playtimes()
+        top_times: list[tuple] = self._stats_service.get_top_playtimes()
         entries_per_block = 20
         for i in range(0, len(top_times), entries_per_block):
             batch = top_times[i : i + entries_per_block]
@@ -159,7 +156,7 @@ class StatsCog(commands.Cog):
     @show_top_playtimes.before_loop
     @update_game_stats.before_loop
     async def before_tasks(self):
-        await self.bot.wait_until_ready()
+        await self._bot.wait_until_ready()
 
     @command(name="stats", description="Shows the player's statistics.")
     @describe(
@@ -186,7 +183,7 @@ class StatsCog(commands.Cog):
             return
 
         title_range_suffix = _range_suffix(month=month, year=year)
-        user = self.user_service.get_user(username)
+        user = self._user_service.get_user(username)
         if not user:
             await interaction.followup.send(
                 embed=Embed(
@@ -198,7 +195,7 @@ class StatsCog(commands.Cog):
             return
 
         title = f"{user.name}'s stats{title_range_suffix}"
-        stats = self.stats_service.get_player_stats(user.id, month=month, year=year)
+        stats = self._stats_service.get_player_stats(user.id, month=month, year=year)
         if not stats:
             await interaction.followup.send(
                 embed=Embed(
@@ -230,9 +227,9 @@ class StatsCog(commands.Cog):
         stats_txt = stats_txt[:-1]  # rm \n
 
         embed = Embed(title=title, color=Color.green(), description=stats_txt)
-        embed.set_thumbnail(url=self.user_service.get_user_thumbnail_url(user))
+        embed.set_thumbnail(url=self._user_service.get_user_thumbnail_url(user))
         await interaction.followup.send(embed=embed)
-        self.stats_service.save_stat_search(interaction.user.id, user.name)
+        self._stats_service.save_stat_search(interaction.user.id, user.name)
 
     @command(
         name="leaderboards", description="Shows the top 10 players on a leaderboard."
@@ -260,7 +257,7 @@ class StatsCog(commands.Cog):
             leaderboard, "Invalid leaderboard"
         )
         title = f"Most {leaderboard_full_name.lower()}{title_range_suffix}"
-        top10 = self.stats_service.get_top_leaderboard(
+        top10 = self._stats_service.get_top_leaderboard(
             leaderboard, month=month, year=year
         )
         if not top10:

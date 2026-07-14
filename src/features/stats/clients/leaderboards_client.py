@@ -9,11 +9,11 @@ class LeaderboardsClient(ExperienceClient):
     def __init__(self):
         super().__init__()
 
-        self.individual_leaderboard_endpoint = f"{self.base_endpoint}/data-stores/{Config.LEADERBOARDS_DATASTORE_NAME}/entries"
-        self.leaderboards_top10_endpoint = f"{self.base_endpoint}/data-stores/{Config.LEADERBOARDS_TOP10_DATASTORE_NAME}/entries"
+        self._individual_leaderboard_endpoint = f"{self.base_endpoint}/data-stores/{Config.LEADERBOARDS_DATASTORE_NAME}/entries"
+        self._leaderboards_top10_endpoint = f"{self.base_endpoint}/data-stores/{Config.LEADERBOARDS_TOP10_DATASTORE_NAME}/entries"
 
     def get_player_stats(self, user_id: str) -> list[tuple[str, str]] | None:
-        endpoint = f"{self.individual_leaderboard_endpoint}/{user_id}"
+        endpoint = f"{self._individual_leaderboard_endpoint}/{user_id}"
         response = requests.get(url=endpoint, headers=self.headers)
 
         try:
@@ -25,7 +25,7 @@ class LeaderboardsClient(ExperienceClient):
 
     def get_live_leaderboards_top10(self) -> dict[str : list[tuple[str, str]]] | None:
         endpoint = (
-            self.leaderboards_top10_endpoint + "/" + Config.LEADERBOARDS_TOP10_KEY
+            self._leaderboards_top10_endpoint + "/" + Config.LEADERBOARDS_TOP10_KEY
         )
         response = requests.get(url=endpoint, headers=self.headers)
 
@@ -50,7 +50,7 @@ class LeaderboardsClient(ExperienceClient):
         else:
             key += f"Yearly_{year}"
 
-        endpoint = self.leaderboards_top10_endpoint + "/" + key
+        endpoint = self._leaderboards_top10_endpoint + "/" + key
         response = requests.get(url=endpoint, headers=self.headers)
         try:
             response.raise_for_status()

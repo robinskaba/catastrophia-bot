@@ -10,10 +10,10 @@ class UserClient(BaseClient):
     def __init__(self):
         super().__init__()
 
-        self.users_endpoint = self.base_endpoint + "/users"
+        self._users_endpoint = self.base_endpoint + "/users"
 
     def get_roblox_user(self, user_id: str) -> RobloxUser | None:
-        endpoint = f"{self.users_endpoint}/{user_id}"
+        endpoint = f"{self._users_endpoint}/{user_id}"
         response = requests.get(url=endpoint, headers=self.headers)
 
         try:

@@ -11,10 +11,10 @@ from discord import (
 from discord.ext import commands
 from discord.app_commands import Choice
 
-from src.features.stats.stats_service import StatsService
-from src.features.users.user_service import UserService
+from src.features.stats.services.stats_service import StatsService
+from src.features.users.services.user_service import UserService
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 async def _answer_unknown_user(interaction: Interaction, username: str):
@@ -29,10 +29,10 @@ class RobloxCog(commands.Cog):
     """Cog with commands to manage the Discord server."""
 
     def __init__(self, bot: commands.Bot):
-        self.bot = bot
+        self._bot = bot
 
-        self.user_service = UserService()
-        self.stats_service = StatsService()
+        self._user_service = UserService()
+        self._stats_service = StatsService()
 
     @app_commands.command(
         name="player", description="Lists information about a player."
@@ -42,14 +42,14 @@ class RobloxCog(commands.Cog):
             ephemeral=True
         )  # defering since might take longer
 
-        user = self.user_service.get_user(username)
-        user = self.user_service.get_detailed_user(user.id) if user else None
+        user = self._user_service.get_user(username)
+        user = self._user_service.get_detailed_user(user.id) if user else None
         if not user:
             await _answer_unknown_user(interaction, username)
             return
 
         embed = Embed(title=user.name, color=Color.random())
-        embed.set_thumbnail(url=self.user_service.get_user_thumbnail_url(user))
+        embed.set_thumbnail(url=self._user_service.get_user_thumbnail_url(user))
 
         # Roblox information
         embed.add_field(
@@ -59,9 +59,9 @@ class RobloxCog(commands.Cog):
         )
 
         # Catastrophia information
-        spent_rbx = self.user_service.get_robux_spent(user)
+        spent_rbx = self._user_service.get_robux_spent(user)
         spent_rbx = f"{spent_rbx:,}".replace(",", " ")  # formatting
-        playtime = self.stats_service.get_player_playtime(user.name)
+        playtime = self._stats_service.get_player_playtime(user.name)
         embed.add_field(
             name="Catastrophia",
             value=f"**Spent: {spent_rbx}** RBX\nPlaytime: {playtime // 60} hours\n",
@@ -69,7 +69,7 @@ class RobloxCog(commands.Cog):
         )
 
         # Restrictions
-        restrictions = self.user_service.get_user_restrictions(user)
+        restrictions = self._user_service.get_user_restrictions(user)
         restrictions = restrictions if restrictions else []
         is_banned = restrictions[0].is_ongoing if len(restrictions) > 0 else False
 
@@ -121,12 +121,12 @@ class RobloxCog(commands.Cog):
     ):
         await interaction.response.defer(ephemeral=not show_response)
 
-        user = self.user_service.get_user(username)
+        user = self._user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
             return
 
-        success = self.user_service.add_user_restriction(
+        success = self._user_service.add_user_restriction(
             user, reason, duration_in_days, ban_alts
         )
 
@@ -147,11 +147,11 @@ class RobloxCog(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=not show_response)
 
         if success:
-            logger.info(
+            _logger.info(
                 f"@{interaction.user.name} banned roblox user '{user.name}', {duration_in_days=}, {reason=}"
             )
         else:
-            logger.error(f"banning roblox user '{user.name}' failed")
+            _logger.error(f"banning roblox user '{user.name}' failed")
 
     @app_commands.command(
         name="roblox-unban", description="Unbans a Roblox user from Catastrophia"
@@ -167,12 +167,12 @@ class RobloxCog(commands.Cog):
     ) -> bool:
         await interaction.response.defer(ephemeral=not show_response)
 
-        user = self.user_service.get_user(username)
+        user = self._user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
             return
 
-        success = self.user_service.remove_user_restriction(user)
+        success = self._user_service.remove_user_restriction(user)
         message = (
             "was unbanned."
             if success
@@ -187,7 +187,7 @@ class RobloxCog(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=not show_response)
 
         if success:
-            logger.info(f"@{interaction.user.name} unbanned roblox user '{user.name}'")
+            _logger.info(f"@{interaction.user.name} unbanned roblox user '{user.name}'")
 
     @app_commands.command(
         name="predict-username",
@@ -198,7 +198,7 @@ class RobloxCog(commands.Cog):
 
         title = f"{user.name}'s Roblox username"
         username_probabilities = (
-            self.stats_service.get_predicted_usernames_from_searches(user.id)
+            self._stats_service.get_predicted_usernames_from_searches(user.id)
         )
         if not username_probabilities:
             await interaction.followup.send(

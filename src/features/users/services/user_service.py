@@ -15,31 +15,31 @@ class UserService:
         return cls._instance
 
     def __init__(self):
-        self.user_dao = UserClient()
-        self.restrictions_dao = RestrictionsClient()
-        self.spender_dao = SpenderClient()
+        self._user_client = UserClient()
+        self._restrictions_client = RestrictionsClient()
+        self._spender_client = SpenderClient()
 
     def get_user(self, username: str) -> User | None:
-        return self.user_dao.get_user_from_username(username)
+        return self._user_client.get_user_from_username(username)
 
     def get_detailed_user(self, user_id: str) -> RobloxUser | None:
-        return self.user_dao.get_roblox_user(user_id)
+        return self._user_client.get_roblox_user(user_id)
 
     def get_user_thumbnail_url(self, user: User) -> str:
-        return self.user_dao.get_user_avatar_headshot_img_url(user.id)
+        return self._user_client.get_user_avatar_headshot_img_url(user.id)
 
     def get_user_restrictions(self, user: User) -> list[Restriction] | None:
-        return self.restrictions_dao.get_user_restrictions(user.id)
+        return self._restrictions_client.get_user_restrictions(user.id)
 
     def get_robux_spent(self, user: User) -> int:
-        return self.spender_dao.get_roblox_spent(user.name)
+        return self._spender_client.get_roblox_spent(user.name)
 
     def add_user_restriction(
         self, user: User, reason: str, duration_in_days: int, ban_alts=True
     ) -> bool:
-        return self.restrictions_dao.add_user_restriction(
+        return self._restrictions_client.add_user_restriction(
             user.id, reason, duration_in_days, not ban_alts
         )
 
     def remove_user_restriction(self, user: User) -> bool:
-        return self.restrictions_dao.remove_user_restriction(user.id)
+        return self._restrictions_client.remove_user_restriction(user.id)

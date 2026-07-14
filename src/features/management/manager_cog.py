@@ -6,14 +6,14 @@ import discord
 from discord.app_commands import Choice
 from discord.ext import commands
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class ManagerCog(commands.Cog):
     """Cog with commands to manage the Discord server."""
 
     def __init__(self, bot: commands.Bot):
-        self.bot = bot
+        self._bot = bot
 
     @app_commands.command(name="clear", description="Clears last messages from a user.")
     async def clear_messages(
@@ -50,7 +50,7 @@ class ManagerCog(commands.Cog):
             f"```Removed {len(user_messages)} last message(s) from {user.display_name} ({user.name}) in #{channel.name}.```",
             ephemeral=True,
         )
-        logger.info(
+        _logger.info(
             f"removed {len(user_messages)} last message(s) from {user.display_name} ({user.name}) in #{channel.name}."
         )
 

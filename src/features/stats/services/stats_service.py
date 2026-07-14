@@ -1,13 +1,10 @@
 from datetime import UTC, datetime
-import logging
 from src.features.stats.daos.stats_dao import StatsDao
 from src.features.stats.clients.game_client import GameClient
 from src.features.stats.clients.leaderboards_client import LeaderboardsClient
 from src.features.stats.clients.playtimes_client import PlaytimesClient
 from src.features.stats.model.game_stats import GameStats
 from src.features.users.clients.user_client import UserClient
-
-_logger = logging.getLogger(__name__)
 
 
 class StatsService:
@@ -19,21 +16,21 @@ class StatsService:
         return cls._instance
 
     def __init__(self):
-        self.playtimes_dao = PlaytimesClient()
-        self.leaderboards_dao = LeaderboardsClient()
-        self.user_dao = UserClient()
-        self.game_dao = GameClient()
+        self._playtimes_client = PlaytimesClient()
+        self._leaderboard_client = LeaderboardsClient()
+        self._user_client = UserClient()
+        self._game_client = GameClient()
 
         self.stats_dao = StatsDao()
 
     def get_player_playtime(self, username: str) -> int:
-        playtime = self.playtimes_dao.get(username)
+        playtime = self._playtimes_client.get(username)
         return playtime if playtime else 0
 
     def get_player_stats(
         self, user_id: str, month: int | None, year: int | None
     ) -> dict | None:
-        player_stats = self.leaderboards_dao.get_player_stats(user_id)
+        player_stats = self._leaderboard_client.get_player_stats(user_id)
         if not player_stats:
             return None
         if not month and not year:
@@ -43,7 +40,7 @@ class StatsService:
         return player_stats["Yearly"].get(f"{year}")
 
     def get_top_playtimes(self) -> list[tuple]:
-        top_times_data = self.playtimes_dao.getTop()
+        top_times_data = self._playtimes_client.getTop()
         if not top_times_data:
             return []
 
@@ -70,7 +67,7 @@ class StatsService:
             )
             or (not month and year and year == current_date.year)
         ):
-            live_record = self.leaderboards_dao.get_live_leaderboards_top10()
+            live_record = self._leaderboard_client.get_live_leaderboards_top10()
             if not live_record:
                 return None
             if not month and not year:
@@ -80,7 +77,7 @@ class StatsService:
             else:
                 leaderboards = live_record["Monthly"]
         else:
-            leaderboards = self.leaderboards_dao.get_past_leaderboards_top10(
+            leaderboards = self._leaderboard_client.get_past_leaderboards_top10(
                 month=month, year=year
             )
             if not leaderboards:
@@ -93,7 +90,7 @@ class StatsService:
             user_id, value = entry["UserId"], entry["Count"]
             username = cached_usernames.get(user_id)
             if not username:
-                user = self.user_dao.get_roblox_user(user_id)
+                user = self._user_client.get_roblox_user(user_id)
                 username = user.name if user else "MISSING"
                 cached_usernames[user_id] = username
 
@@ -102,7 +99,7 @@ class StatsService:
         return results
 
     def get_game_stats(self) -> GameStats | None:
-        return self.game_dao.get_game_stats()
+        return self._game_client.get_game_stats()
 
     def save_stat_search(self, discord_id: int, rbx_username: str):
         self.stats_dao.save_stats_search(discord_id, rbx_username)
