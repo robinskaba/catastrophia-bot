@@ -35,6 +35,8 @@ class Env:
     API_KEY = _require_env("API_KEY")
     UNIVERSE_ID = _require_env("UNIVERSE_ID")
 
+    TRANSLATION_ENDPOINT = _require_env("TRANSLATION_ENDPOINT")
+
 
 class Config:
     CONFIDENTIAL_USERNAMES = _require_config("CONFIDENTIAL_USERNAMES")
