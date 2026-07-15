@@ -85,6 +85,10 @@ class FilterCog(commands.Cog):
         if message.author.bot:  # to prevent infinite loop
             return
 
+        # owner can bypass filters
+        if message.author.get_role(Config.OWNER_ROLE_ID):
+            return
+
         if message.channel.id in Config.NO_MEDIA_CHANNELS:
             if await self.enforce_no_media(message):
                 return
