@@ -25,7 +25,7 @@ class TranslationCog(commands.Cog):
 
     # context command for translating to russian
     async def translate_to_russian(self, interaction: Interaction, message: Message):
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
         russian_translation = await translate(
             message.content, Language.ENGLISH, Language.RUSSIAN
         )
