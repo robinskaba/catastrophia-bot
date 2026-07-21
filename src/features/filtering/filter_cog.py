@@ -1,7 +1,7 @@
 from datetime import timedelta, timezone
 import logging
 import re
-from discord import Message, Object, datetime
+from discord import Member, Message, Object, datetime
 from discord.ext import commands, tasks
 from src.common.config.config import Config, Env
 from src.features.filtering.services.creator_service import CreatorService
@@ -86,7 +86,9 @@ class FilterCog(commands.Cog):
             return
 
         # owner can bypass filters
-        if message.author.get_role(Config.OWNER_ROLE_ID):
+        if isinstance(message.author, Member) and message.author.get_role(
+            Config.OWNER_ROLE_ID
+        ):
             return
 
         if message.channel.id in Config.NO_MEDIA_CHANNELS:
