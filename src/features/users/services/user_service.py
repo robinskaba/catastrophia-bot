@@ -35,10 +35,10 @@ class UserService:
         return self._spender_client.get_roblox_spent(user.name)
 
     def add_user_restriction(
-        self, user: User, reason: str, duration_in_days: int, ban_alts=True
+        self, user: User, reason: str, duration_in_hours: int, ban_alts=True
     ) -> bool:
         return self._restrictions_client.add_user_restriction(
-            user.id, reason, duration_in_days, not ban_alts
+            user.id, reason, duration_in_hours, not ban_alts
         )
 
     def remove_user_restriction(self, user: User) -> bool:

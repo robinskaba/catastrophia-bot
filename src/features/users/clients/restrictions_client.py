@@ -39,19 +39,23 @@ class RestrictionsClient(ExperienceClient):
         return restrictions
 
     def add_user_restriction(
-        self, user_id: str, reason: str, duration_in_days: int | None, exclude_alt=False
+        self,
+        user_id: str,
+        reason: str,
+        duration_in_hours: int | None,
+        exclude_alt=False,
     ) -> bool:
         endpoint = f"{self._user_restriction_endpoint}/{user_id}"
         data = {
             "gameJoinRestriction": {
                 "active": True,
-                "privateReason": f"{reason} (from DC)",
+                "privateReason": reason,
                 "displayReason": "Cheating",
                 "excludeAltAccounts": exclude_alt,
             }
         }
-        if duration_in_days:
-            data["gameJoinRestriction"]["duration"] = f"{duration_in_days * 24 * 3600}s"
+        if duration_in_hours:
+            data["gameJoinRestriction"]["duration"] = f"{duration_in_hours * 3600}s"
 
         response = requests.patch(url=endpoint, json=data, headers=self.headers)
         try:
@@ -67,7 +71,7 @@ class RestrictionsClient(ExperienceClient):
         data = {
             "gameJoinRestriction": {
                 "active": False,
-                "privateReason": "unbanned (from DC)",
+                "privateReason": "unbanned",
             }
         }
 

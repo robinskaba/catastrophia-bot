@@ -115,7 +115,7 @@ class UserCog(commands.Cog):
         interaction: Interaction,
         username: str,
         reason: str = "",
-        duration_in_days: int | None = None,
+        duration_in_hours: int | None = None,
         ban_alts: int = 1,
         show_response: int = 0,
     ):
@@ -127,11 +127,11 @@ class UserCog(commands.Cog):
             return
 
         success = self._user_service.add_user_restriction(
-            user, reason, duration_in_days, ban_alts
+            user, reason, duration_in_hours, ban_alts
         )
 
         duration_str = (
-            f"for {duration_in_days} days" if duration_in_days else "permanently"
+            f"for {duration_in_hours} hours" if duration_in_hours else "permanently"
         )
         message = (
             f"was banned {duration_str}."
@@ -148,7 +148,7 @@ class UserCog(commands.Cog):
 
         if success:
             _logger.info(
-                f"@{interaction.user.name} banned roblox user '{user.name}', {duration_in_days=}, {reason=}"
+                f"@{interaction.user.name} banned roblox user '{user.name}', {duration_in_hours=}, {reason=}"
             )
         else:
             _logger.error(f"banning roblox user '{user.name}' failed")
