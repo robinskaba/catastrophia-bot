@@ -25,8 +25,8 @@ async def _answer_unknown_user(interaction: Interaction, username: str):
         await interaction.followup.send(embed=embed, ephemeral=True)
 
 
-class RobloxCog(commands.Cog):
-    """Cog with commands to manage the Discord server."""
+class UserCog(commands.Cog):
+    """Cog with commands to manage Roblox users."""
 
     def __init__(self, bot: commands.Bot):
         self._bot = bot
@@ -225,4 +225,4 @@ class RobloxCog(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(RobloxCog(bot), guilds=[Object(id=bot.guild_id)])
+    await bot.add_cog(UserCog(bot), guilds=[Object(id=bot.guild_id)])
