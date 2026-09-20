@@ -1,7 +1,7 @@
 import logging
 import re
 
-from discord import Interaction, Message, Object, TextChannel, app_commands
+from discord import Interaction, Message, Object, TextChannel, app_commands, DMChannel
 from discord.ext import commands
 from src.common.config.config import Env
 from src.features.translation.http.translation_http import Language, translate
@@ -43,6 +43,9 @@ class TranslationCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: Message):
+        if isinstance(message.channel, DMChannel):
+            return
+
         # do not retrigger on bot messages or empty
         if message.author.bot or not message.content:
             return
