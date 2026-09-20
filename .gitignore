@@ -7,3 +7,4 @@ secrets.json
 **/__pycache__/
 creators.json
 *.db
+temp
