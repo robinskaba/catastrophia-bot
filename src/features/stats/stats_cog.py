@@ -82,6 +82,7 @@ class StatsCog(commands.Cog):
 
     async def cog_load(self):
         self._stats_service.set_session(self._bot.session)
+        self._user_service.set_session(self._bot.session)
 
         self.show_top_playtimes.start()
         self.update_game_stats.start()
