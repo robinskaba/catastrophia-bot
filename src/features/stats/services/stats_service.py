@@ -1,4 +1,6 @@
 from datetime import UTC, datetime
+
+import aiohttp
 from src.features.stats.daos.stats_dao import StatsDao
 from src.features.stats.clients.game_client import GameClient
 from src.features.stats.clients.leaderboards_client import LeaderboardsClient
@@ -23,14 +25,20 @@ class StatsService:
 
         self.stats_dao = StatsDao()
 
-    def get_player_playtime(self, username: str) -> int:
-        playtime = self._playtimes_client.get(username)
+    def set_session(self, session: aiohttp.ClientSession):
+        self._playtimes_client.set_session(session)
+        self._leaderboard_client.set_session(session)
+        self._user_client.set_session(session)
+        self._game_client.set_session(session)
+
+    async def get_player_playtime(self, username: str) -> int:
+        playtime = await self._playtimes_client.get(username)
         return playtime if playtime else 0
 
-    def get_player_stats(
+    async def get_player_stats(
         self, user_id: str, month: int | None, year: int | None
     ) -> dict | None:
-        player_stats = self._leaderboard_client.get_player_stats(user_id)
+        player_stats = await self._leaderboard_client.get_player_stats(user_id)
         if not player_stats:
             return None
         if not month and not year:
@@ -39,8 +47,8 @@ class StatsService:
             return player_stats["Monthly"].get(f"{month:02d}_{year}")
         return player_stats["Yearly"].get(f"{year}")
 
-    def get_top_playtimes(self) -> list[tuple]:
-        top_times_data = self._playtimes_client.getTop()
+    async def get_top_playtimes(self) -> list[tuple]:
+        top_times_data = await self._playtimes_client.getTop()
         if not top_times_data:
             return []
 
@@ -51,7 +59,7 @@ class StatsService:
 
         return top_times
 
-    def get_top_leaderboard(
+    async def get_top_leaderboard(
         self, leaderboard_key: str, month: int | None = None, year: int | None = None
     ) -> list[tuple] | None:
         leaderboards = {}
@@ -67,7 +75,7 @@ class StatsService:
             )
             or (not month and year and year == current_date.year)
         ):
-            live_record = self._leaderboard_client.get_live_leaderboards_top10()
+            live_record = await self._leaderboard_client.get_live_leaderboards_top10()
             if not live_record:
                 return None
             if not month and not year:
@@ -77,7 +85,7 @@ class StatsService:
             else:
                 leaderboards = live_record["Monthly"]
         else:
-            leaderboards = self._leaderboard_client.get_past_leaderboards_top10(
+            leaderboards = await self._leaderboard_client.get_past_leaderboards_top10(
                 month=month, year=year
             )
             if not leaderboards:
@@ -90,7 +98,7 @@ class StatsService:
             user_id, value = entry["UserId"], entry["Count"]
             username = cached_usernames.get(user_id)
             if not username:
-                user = self._user_client.get_roblox_user(user_id)
+                user = await self._user_client.get_roblox_user(user_id)
                 username = user.name if user else "MISSING"
                 cached_usernames[user_id] = username
 
@@ -98,13 +106,13 @@ class StatsService:
 
         return results
 
-    def get_game_stats(self) -> GameStats | None:
-        return self._game_client.get_game_stats()
+    async def get_game_stats(self) -> GameStats | None:
+        return await self._game_client.get_game_stats()
 
-    def save_stat_search(self, discord_id: int, rbx_username: str):
+    async def save_stat_search(self, discord_id: int, rbx_username: str):
         self.stats_dao.save_stats_search(discord_id, rbx_username)
 
-    def get_predicted_usernames_from_searches(
+    async def get_predicted_usernames_from_searches(
         self, discord_id: int
     ) -> list[tuple[str, float]] | None:
         searches = self.stats_dao.get_search_counts_by_discord_id_for_username(

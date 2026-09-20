@@ -34,6 +34,10 @@ class UserCog(commands.Cog):
         self._user_service = UserService()
         self._stats_service = StatsService()
 
+    async def cog_load(self):
+        self._user_service.set_session(self._bot.session)
+        self._stats_service.set_session(self._bot.session)
+
     @app_commands.command(
         name="player", description="Lists information about a player."
     )
@@ -42,14 +46,15 @@ class UserCog(commands.Cog):
             ephemeral=True
         )  # defering since might take longer
 
-        user = self._user_service.get_user(username)
-        user = self._user_service.get_detailed_user(user.id) if user else None
+        user = await self._user_service.get_user(username)
+        user = await self._user_service.get_detailed_user(user.id) if user else None
         if not user:
             await _answer_unknown_user(interaction, username)
             return
 
         embed = Embed(title=user.name, color=Color.random())
-        embed.set_thumbnail(url=self._user_service.get_user_thumbnail_url(user))
+        thumbnail_url = await self._user_service.get_user_thumbnail_url(user)
+        embed.set_thumbnail(url=thumbnail_url)
 
         # Roblox information
         embed.add_field(
@@ -59,9 +64,9 @@ class UserCog(commands.Cog):
         )
 
         # Catastrophia information
-        spent_rbx = self._user_service.get_robux_spent(user)
+        spent_rbx = await self._user_service.get_robux_spent(user)
         spent_rbx = f"{spent_rbx:,}".replace(",", " ")  # formatting
-        playtime = self._stats_service.get_player_playtime(user.name)
+        playtime = await self._stats_service.get_player_playtime(user.name)
         embed.add_field(
             name="Catastrophia",
             value=f"**Spent: {spent_rbx}** RBX\nPlaytime: {playtime // 60} hours\n",
@@ -69,7 +74,7 @@ class UserCog(commands.Cog):
         )
 
         # Restrictions
-        restrictions = self._user_service.get_user_restrictions(user)
+        restrictions = await self._user_service.get_user_restrictions(user)
         restrictions = restrictions if restrictions else []
         is_banned = restrictions[0].is_ongoing if len(restrictions) > 0 else False
 
@@ -121,12 +126,12 @@ class UserCog(commands.Cog):
     ):
         await interaction.response.defer(ephemeral=not show_response)
 
-        user = self._user_service.get_user(username)
+        user = await self._user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
             return
 
-        success = self._user_service.add_user_restriction(
+        success = await self._user_service.add_user_restriction(
             user, reason, duration_in_hours, ban_alts
         )
 
@@ -167,12 +172,12 @@ class UserCog(commands.Cog):
     ) -> bool:
         await interaction.response.defer(ephemeral=not show_response)
 
-        user = self._user_service.get_user(username)
+        user = await self._user_service.get_user(username)
         if not user:
             await _answer_unknown_user(interaction, username)
             return
 
-        success = self._user_service.remove_user_restriction(user)
+        success = await self._user_service.remove_user_restriction(user)
         message = (
             "was unbanned."
             if success
@@ -198,7 +203,7 @@ class UserCog(commands.Cog):
 
         title = f"{user.name}'s Roblox username"
         username_probabilities = (
-            self._stats_service.get_predicted_usernames_from_searches(user.id)
+            await self._stats_service.get_predicted_usernames_from_searches(user.id)
         )
         if not username_probabilities:
             await interaction.followup.send(

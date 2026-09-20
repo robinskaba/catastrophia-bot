@@ -1,3 +1,4 @@
+import aiohttp
 from requests import HTTPError, get
 
 from src.common.config.config import Config
@@ -11,31 +12,33 @@ class PlaytimesClient(ExperienceClient):
 
         self._playtimes_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Config.PLAYTIMES_DATASTORE_NAME}/scopes/global/entries"
 
-    def getTop(self, limit: int = 100) -> list[tuple[str, int]]:
-        response = get(
-            url=self._playtimes_endpoint,
-            headers=self.headers,
-            params={"orderBy": "value desc", "maxPageSize": limit},
-        )
-
+    async def getTop(self, limit: int = 100) -> list[tuple[str, int]]:
         try:
-            response.raise_for_status()
-        except HTTPError as e:
+            async with self._session.get(
+                url=self._playtimes_endpoint,
+                headers=self.headers,
+                params={"orderBy": "value desc", "maxPageSize": limit},
+            ) as response:
+                response.raise_for_status()
+                data = await response.json()
+        except aiohttp.ClientError as _:
             return []
         else:
-            entries = response.json()["orderedDataStoreEntries"]
+            entries = data["orderedDataStoreEntries"]
             return [(entry["id"], entry["value"]) for entry in entries]
 
-    def get(self, username: str) -> int | None:
+    async def get(self, username: str) -> int | None:
         endpoint = self._playtimes_endpoint + "/" + username
-        response = get(url=endpoint, headers=self.headers)
 
         try:
-            response.raise_for_status()
+            async with self._session.get(
+                url=endpoint, headers=self.headers
+            ) as response:
+                response.raise_for_status()
+                data = await response.json()
         except (
-            HTTPError
+            aiohttp.ClientError
         ) as _:  # no logging because it returns 404 for non-existent player
             return None
         else:
-            entry = response.json()
-            return entry["value"]
+            return data["value"]

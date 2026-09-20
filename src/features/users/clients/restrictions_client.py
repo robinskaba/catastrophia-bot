@@ -1,7 +1,11 @@
+import logging
+
+import aiohttp
 from discord import datetime
-import requests
 from src.features.users.model.restriction import Restriction
 from src.features.users.clients.experience_client import ExperienceClient
+
+_logger = logging.getLogger(__name__)
 
 
 class RestrictionsClient(ExperienceClient):
@@ -11,18 +15,22 @@ class RestrictionsClient(ExperienceClient):
 
         self._user_restriction_endpoint = f"{self.base_endpoint}/user-restrictions"
 
-    def get_user_restrictions(self, user_id: str) -> list[Restriction] | None:
+    async def get_user_restrictions(self, user_id: str) -> list[Restriction] | None:
         endpoint = f"{self._user_restriction_endpoint}:listLogs"
         params = {"filter": f"user == 'users/{user_id}'"}
-        response = requests.get(url=endpoint, params=params, headers=self.headers)
 
         try:
-            response.raise_for_status()
-        except requests.HTTPError as e:
-            print(e)
+            async with self._session.get(
+                url=endpoint, params=params, headers=self.headers
+            ) as response:
+                response.raise_for_status()
+                data = await response.json()
+        except aiohttp.ClientError as e:
+            _logger.error(f"failed to fetch user restrictions: {e}")
             return None
 
-        logs = response.json()["logs"]
+        # TODO also maybe move to service?
+        logs = data["logs"]
         restrictions = []
         for log in logs:
             reason = log.get("privateReason", "Unknown Reason")
@@ -38,7 +46,7 @@ class RestrictionsClient(ExperienceClient):
 
         return restrictions
 
-    def add_user_restriction(
+    async def add_user_restriction(
         self,
         user_id: str,
         reason: str,
@@ -57,28 +65,33 @@ class RestrictionsClient(ExperienceClient):
         if duration_in_hours:
             data["gameJoinRestriction"]["duration"] = f"{duration_in_hours * 3600}s"
 
-        response = requests.patch(url=endpoint, json=data, headers=self.headers)
         try:
-            response.raise_for_status()
-            return True
-        except requests.exceptions.HTTPError as err:
-            print(f"Error: {err}")
+            async with self._session.patch(
+                url=endpoint, json=data, headers=self.headers
+            ) as response:
+                response.raise_for_status()
+        except aiohttp.ClientError as e:
+            _logger.error(f"failed to update user restriction: {e}")
             return False
 
-    def remove_user_restriction(self, user_id: str) -> bool:
-        endpoint = f"{self._user_restriction_endpoint}/{user_id}"
+        return True
 
-        data = {
+    async def remove_user_restriction(self, user_id: str) -> bool:
+        endpoint = f"{self._user_restriction_endpoint}/{user_id}"
+        payload = {
             "gameJoinRestriction": {
                 "active": False,
                 "privateReason": "unbanned",
             }
         }
 
-        response = requests.patch(url=endpoint, json=data, headers=self.headers)
         try:
-            response.raise_for_status()
-            return True
-        except requests.exceptions.HTTPError as err:
-            print(f"Error: {err}")
+            async with self._session.patch(
+                url=endpoint, json=payload, headers=self.headers
+            ) as response:
+                response.raise_for_status()
+        except aiohttp.ClientError as e:
+            _logger.error(f"failed to remove user restriction: {e}")
             return False
+
+        return True

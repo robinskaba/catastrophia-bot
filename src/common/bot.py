@@ -1,5 +1,6 @@
 import logging
 import os
+import aiohttp
 from aiohttp.connector import ClientConnectorError
 import discord
 from discord.ext import commands
@@ -18,6 +19,7 @@ class CatastrophiaBot(commands.Bot):
             command_prefix=[], intents=Intents.all(), application_id=Env.APPLICATION_ID
         )
 
+        self.session = None
         self.guild_id = Env.GUILD_ID
 
     def launch(self):
@@ -29,6 +31,9 @@ class CatastrophiaBot(commands.Bot):
             _logger.error(f"failed to connect bot due to ClientConnectorError! {e}")
 
     async def setup_hook(self):
+        # create aiohttp session
+        self.session = aiohttp.ClientSession()
+
         for feature_folder in os.listdir(_FEATURES_PATH):
             feature_dir = os.path.join(_FEATURES_PATH, feature_folder)
 
@@ -46,3 +51,10 @@ class CatastrophiaBot(commands.Bot):
 
     async def on_ready(self):
         _logger.info(f"{self.user} bot is ready.")
+
+    async def close(self):
+        # close aiohttp session if exists
+        if hasattr(self, "session") and self.session:
+            await self.session.close()
+
+        await super().close()

@@ -81,6 +81,8 @@ class StatsCog(commands.Cog):
         self._user_service = UserService()
 
     async def cog_load(self):
+        self._stats_service.set_session(self._bot.session)
+
         self.show_top_playtimes.start()
         self.update_game_stats.start()
 
@@ -90,7 +92,7 @@ class StatsCog(commands.Cog):
 
     @tasks.loop(minutes=15)
     async def update_game_stats(self):
-        game_stats = self._stats_service.get_game_stats()
+        game_stats = await self._stats_service.get_game_stats()
         if not game_stats:
             return
 
@@ -125,7 +127,7 @@ class StatsCog(commands.Cog):
 
         await top_players_channel.purge()
 
-        top_times: list[tuple] = self._stats_service.get_top_playtimes()
+        top_times: list[tuple] = await self._stats_service.get_top_playtimes()
         entries_per_block = 20
         for i in range(0, len(top_times), entries_per_block):
             batch = top_times[i : i + entries_per_block]
@@ -183,7 +185,7 @@ class StatsCog(commands.Cog):
             return
 
         title_range_suffix = _range_suffix(month=month, year=year)
-        user = self._user_service.get_user(username)
+        user = await self._user_service.get_user(username)
         if not user:
             await interaction.followup.send(
                 embed=Embed(
@@ -195,7 +197,9 @@ class StatsCog(commands.Cog):
             return
 
         title = f"{user.name}'s stats{title_range_suffix}"
-        stats = self._stats_service.get_player_stats(user.id, month=month, year=year)
+        stats = await self._stats_service.get_player_stats(
+            user.id, month=month, year=year
+        )
         if not stats:
             await interaction.followup.send(
                 embed=Embed(
@@ -227,9 +231,10 @@ class StatsCog(commands.Cog):
         stats_txt = stats_txt[:-1]  # rm \n
 
         embed = Embed(title=title, color=Color.green(), description=stats_txt)
-        embed.set_thumbnail(url=self._user_service.get_user_thumbnail_url(user))
+        thumbnail_url = await self._user_service.get_user_thumbnail_url(user)
+        embed.set_thumbnail(url=thumbnail_url)
         await interaction.followup.send(embed=embed)
-        self._stats_service.save_stat_search(interaction.user.id, user.name)
+        await self._stats_service.save_stat_search(interaction.user.id, user.name)
 
     @command(
         name="leaderboards", description="Shows the top 10 players on a leaderboard."
@@ -257,7 +262,7 @@ class StatsCog(commands.Cog):
             leaderboard, "Invalid leaderboard"
         )
         title = f"Most {leaderboard_full_name.lower()}{title_range_suffix}"
-        top10 = self._stats_service.get_top_leaderboard(
+        top10 = await self._stats_service.get_top_leaderboard(
             leaderboard, month=month, year=year
         )
         if not top10:
