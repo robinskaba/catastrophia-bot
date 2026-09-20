@@ -88,7 +88,7 @@ class StatsCog(commands.Cog):
         self.show_top_playtimes.cancel()
         self.update_game_stats.cancel()
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=15)
     async def update_game_stats(self):
         game_stats = self._stats_service.get_game_stats()
         if not game_stats:
