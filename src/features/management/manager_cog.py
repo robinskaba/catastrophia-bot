@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from discord import Interaction, Member, Object, TextChannel, User, app_commands
 import discord
@@ -26,7 +26,7 @@ class ManagerCog(commands.Cog):
         """Removes messages from a user."""
         await interaction.response.defer(ephemeral=True)
 
-        two_weeks_ago = discord.utils.utcnow() - datetime.timedelta(weeks=2)
+        two_weeks_ago = discord.utils.utcnow() - timedelta(weeks=2)
         searched_messages_limit = (
             limit * 3 if limit < 100 else None
         )  # allow max search if limit set to 100
