@@ -15,7 +15,7 @@ class GameClient:
         self._games_endpoint = "https://games.roblox.com/v1/games"
 
     def get_game_stats(self) -> GameStats | None:
-        endpoint = f"{self._games_endpoint}?universeIds={Env.UNIVERSE_ID}"
+        endpoint = f"{self._games_endpoint}?universeIds={Env.UNIVERSE_ID}&fields=visits%2Cplaying"
         try:
             response = requests.get(url=endpoint)
             response.raise_for_status()
