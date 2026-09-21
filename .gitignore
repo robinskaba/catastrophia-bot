@@ -8,3 +8,6 @@ secrets.json
 creators.json
 *.db
 temp
+
+# private information
+config.json

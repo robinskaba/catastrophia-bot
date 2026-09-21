@@ -64,3 +64,7 @@ class Config:
     )
     LEADERBOARDS_TOP10_KEY = _require_config("LEADERBOARDS_TOP10_KEY")
     SPENDERS_DATASTORE_NAME = _require_config("SPENDERS_DATASTORE_NAME")
+
+    SERVER_STATE_MSGS_TOPIC = _require_config("SERVER_STATE_MSGS_TOPIC")
+    SERVER_STATE_MEMORY_STORE = _require_config("SERVER_STATE_MEMORY_STORE")
+    SERVERS = _require_config("SERVERS")

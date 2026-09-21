@@ -1,5 +1,4 @@
 import aiohttp
-from requests import HTTPError, get
 
 from src.common.config.config import Config
 from src.features.users.clients.experience_client import ExperienceClient
