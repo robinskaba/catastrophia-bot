@@ -36,6 +36,7 @@ class FilterCog(commands.Cog):
 
     async def cog_load(self):
         self.check_inactive_creators.start()
+        self._creator_service.set_pool(self._bot.pool)
 
     async def cog_unload(self):
         self.check_inactive_creators.cancel()
@@ -67,7 +68,7 @@ class FilterCog(commands.Cog):
                 active_members.add(msg.author.id)
 
         for member in role.members:
-            creator = self._creator_service.get_or_create(member.id)
+            creator = await self._creator_service.get_or_create(member.id)
             role_given = datetime.fromtimestamp(creator.since, tz=timezone.utc)
             if now_utc - role_given < timedelta(
                 days=Config.CONTENT_CREATOR_INACTIVITY_MAX

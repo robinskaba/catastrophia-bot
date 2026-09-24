@@ -33,10 +33,14 @@ class UserCog(commands.Cog):
 
         self._user_service = UserService()
         self._stats_service = StatsService()
+        self._stats_service.set_services(user_service=self._user_service)
 
     async def cog_load(self):
         self._user_service.set_session(self._bot.session)
         self._stats_service.set_session(self._bot.session)
+
+        self._user_service.set_pool(self._bot.pool)
+        self._stats_service.set_pool(self._bot.pool)
 
     @app_commands.command(
         name="player", description="Lists information about a player."
@@ -47,7 +51,7 @@ class UserCog(commands.Cog):
         )  # defering since might take longer
 
         user = await self._user_service.get_user(username)
-        user = await self._user_service.get_detailed_user(user.id) if user else None
+        user = await self._user_service.get_roblox_user_by_id(user.id) if user else None
         if not user:
             await _answer_unknown_user(interaction, username)
             return

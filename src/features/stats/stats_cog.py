@@ -77,12 +77,16 @@ class StatsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self._bot = bot
 
-        self._stats_service = StatsService()
         self._user_service = UserService()
+        self._stats_service = StatsService()
+        self._stats_service.set_services(user_service=self._user_service)
 
     async def cog_load(self):
         self._stats_service.set_session(self._bot.session)
         self._user_service.set_session(self._bot.session)
+
+        self._user_service.set_pool(self._bot.pool)
+        self._stats_service.set_pool(self._bot.pool)
 
         self.show_top_playtimes.start()
         self.update_game_stats.start()
@@ -235,7 +239,6 @@ class StatsCog(commands.Cog):
         thumbnail_url = await self._user_service.get_user_thumbnail_url(user)
         embed.set_thumbnail(url=thumbnail_url)
         await interaction.followup.send(embed=embed)
-        await self._stats_service.save_stat_search(interaction.user.id, user.name)
 
     @command(
         name="leaderboards", description="Shows the top 10 players on a leaderboard."

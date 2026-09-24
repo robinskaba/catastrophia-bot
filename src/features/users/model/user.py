@@ -3,7 +3,7 @@ from __future__ import annotations
 
 class User:
 
-    def __init__(self, id: str, name: str, display_name: str):
+    def __init__(self, id: int, name: str, display_name: str):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -11,7 +11,7 @@ class User:
     @staticmethod
     def from_dict(response: dict) -> User:
         return User(
-            id=response["id"],
+            id=int(response["id"]),
             name=response["name"],
             display_name=response["displayName"],
         )

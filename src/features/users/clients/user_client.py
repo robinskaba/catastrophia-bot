@@ -12,7 +12,7 @@ class UserClient(BaseClient):
 
         self._users_endpoint = self.base_endpoint + "/users"
 
-    async def get_roblox_user(self, user_id: str) -> RobloxUser | None:
+    async def get_roblox_user(self, user_id: int) -> RobloxUser | None:
         endpoint = f"{self._users_endpoint}/{user_id}"
 
         try:
@@ -42,7 +42,7 @@ class UserClient(BaseClient):
             return None
         return User.from_dict(names[0])
 
-    async def get_user_avatar_headshot_img_url(self, user_id: str) -> str:
+    async def get_user_avatar_headshot_img_url(self, user_id: int) -> str:
         endpoint = "https://thumbnails.roblox.com/v1/users/avatar-headshot"
         params = {
             "userIds": user_id,

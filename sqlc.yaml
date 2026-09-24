@@ -1,0 +1,17 @@
+version: "2"
+plugins:
+  - name: better-python
+    wasm:
+      url: https://github.com/rayakame/sqlc-gen-better-python/releases/download/v0.4.5/sqlc-gen-better-python.wasm
+      sha256: 9b42f7cffda942388470e777af957ec8ab03cbea9124ff8c49bef05f9d00cb66
+sql:
+  - engine: "postgresql"
+    queries: "sql/queries/"
+    schema: "sql/schema.sql"
+    codegen:
+      - out: "src/common/db"
+        plugin: better-python
+        options:
+          sql_driver: "asyncpg"
+          emit_init_file: true
+          package: "src.common.db"

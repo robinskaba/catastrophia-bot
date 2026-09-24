@@ -1,14 +1,27 @@
+import logging
 import time
+import asyncpg
 
-from src.features.filtering.daos.creator_dao import CreatorDao
-from src.features.filtering.model.creator import Creator
+from src.common.db import models
+from src.common.db.creators import add_creator, get_creator
+
+_logger = logging.getLogger(__name__)
 
 
 class CreatorService:
 
     def __init__(self):
-        self._creator_dao = CreatorDao()
+        self._pool = None
 
-    def get_or_create(self, discord_id: int) -> Creator:
-        creator = self._creator_dao.get(discord_id)
-        return creator if creator else self._creator_dao.create(discord_id, time.time())
+    def set_pool(self, pool: asyncpg.Pool):
+        self._pool = pool
+
+    async def get_or_create(self, discord_id: int) -> models.Creator:
+        async with self._pool.acquire() as conn:
+            creator = await get_creator(conn=conn, discord_id=discord_id)
+            if not creator:
+                _logger.info(f"new creator detected: {discord_id}")
+                creator = await add_creator(
+                    conn=conn, discord_id=discord_id, since=time.time()
+                )
+        return creator

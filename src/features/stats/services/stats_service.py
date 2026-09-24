@@ -1,12 +1,14 @@
 from datetime import UTC, datetime
 
 import aiohttp
-from src.features.stats.daos.stats_dao import StatsDao
+import asyncpg
+from src.common.db.command_usage import get_searched_stats_usernames_by_discord_id
 from src.features.stats.clients.game_client import GameClient
 from src.features.stats.clients.leaderboards_client import LeaderboardsClient
 from src.features.stats.clients.playtimes_client import PlaytimesClient
 from src.features.stats.model.game_stats import GameStats
 from src.features.users.clients.user_client import UserClient
+from src.features.users.services.user_service import UserService
 
 
 class StatsService:
@@ -18,18 +20,26 @@ class StatsService:
         return cls._instance
 
     def __init__(self):
+        self._pool: asyncpg.Pool | None = None
+
         self._playtimes_client = PlaytimesClient()
         self._leaderboard_client = LeaderboardsClient()
         self._user_client = UserClient()
         self._game_client = GameClient()
 
-        self.stats_dao = StatsDao()
+        self._user_service = None
+
+    def set_services(self, user_service: UserService):
+        self._user_service = user_service
 
     def set_session(self, session: aiohttp.ClientSession):
         self._playtimes_client.set_session(session)
         self._leaderboard_client.set_session(session)
         self._user_client.set_session(session)
         self._game_client.set_session(session)
+
+    def set_pool(self, pool: asyncpg.Pool):
+        self._pool = pool
 
     async def get_player_playtime(self, username: str) -> int:
         playtime = await self._playtimes_client.get(username)
@@ -93,34 +103,25 @@ class StatsService:
 
         leaderboard = leaderboards[leaderboard_key]
         results = []
-        cached_usernames = {}
         for entry in leaderboard:
             user_id, value = entry["UserId"], entry["Count"]
-            username = cached_usernames.get(user_id)
-            if not username:
-                user = await self._user_client.get_roblox_user(user_id)
-                username = user.name if user else "MISSING"
-                cached_usernames[user_id] = username
-
-            results.append((username, value))
+            username = await self._user_service.get_username(user_id)
+            results.append((username if username else "???", value))
 
         return results
 
     async def get_game_stats(self) -> GameStats | None:
         return await self._game_client.get_game_stats()
 
-    async def save_stat_search(self, discord_id: int, rbx_username: str):
-        self.stats_dao.save_stats_search(discord_id, rbx_username)
-
     async def get_predicted_usernames_from_searches(
         self, discord_id: int
     ) -> list[tuple[str, float]] | None:
-        searches = self.stats_dao.get_search_counts_by_discord_id_for_username(
-            discord_id
-        )
+        async with self._pool.acquire() as conn:
+            searches = await get_searched_stats_usernames_by_discord_id(
+                conn=conn, discord_id=discord_id, limit=3
+            )
         if len(searches) < 1:
             return None
-
-        total = sum(x[1] for x in searches)
-        searches.sort(key=lambda a: a[1], reverse=True)
-        return [(username, count / total * 100) for username, count in searches]
+        total = sum(x.search_count for x in searches)
+        searches.sort(key=lambda a: a.search_count, reverse=True)
+        return [(x.username, x.search_count / total * 100) for x in searches]

@@ -8,7 +8,7 @@ class RobloxUser(User):
     def __init__(
         self,
         create_time: datetime,
-        user_id: str,
+        user_id: int,
         name: str,
         display_name: str,
         about: str,
@@ -30,7 +30,7 @@ class RobloxUser(User):
             create_time=datetime.fromisoformat(
                 data.get("createTime", "").replace("Z", "+00:00")
             ),
-            user_id=data.get("id", ""),
+            user_id=int(data.get("id", 0)),
             name=data.get("name", ""),
             display_name=data.get("displayName", ""),
             about=data.get("about", ""),
