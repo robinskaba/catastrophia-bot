@@ -5,10 +5,11 @@
 from __future__ import annotations
 
 __all__: collections.abc.Sequence[str] = (
-    "GetSearchedStatsUsernamesByDiscordIdRow",
     "QueryResults",
-    "add_command_usage",
-    "get_searched_stats_usernames_by_discord_id",
+    "add_scheduled_tournament",
+    "delete_scheduled_tournament",
+    "get_upcoming_or_ongoing_tournaments",
+    "update_tournament_state",
 )
 
 import dataclasses
@@ -28,35 +29,43 @@ if typing.TYPE_CHECKING:
 from src.common.db import models
 
 
-@dataclasses.dataclass()
-class GetSearchedStatsUsernamesByDiscordIdRow:
-    username: typing.Any | None
-    search_count: int
-
-
-ADD_COMMAND_USAGE: typing.Final[str] = """-- name: AddCommandUsage :exec
+ADD_SCHEDULED_TOURNAMENT: typing.Final[str] = """-- name: AddScheduledTournament :exec
 INSERT INTO
-  command_usage (command_name, discord_id, arguments)
+  scheduled_tournaments (server_code, scheduled_at, ends_at, state)
 VALUES
-  ($1, $2, $3)
+  (
+    $1,
+    $2,
+    $3,
+    $4
+  )
 """
 
-GET_SEARCHED_STATS_USERNAMES_BY_DISCORD_ID: typing.Final[str] = """-- name: GetSearchedStatsUsernamesByDiscordId :many
-SELECT
-  arguments ->> 'username' AS username,
-  COUNT(*) AS search_count
-FROM
-  command_usage
+DELETE_SCHEDULED_TOURNAMENT: typing.Final[str] = """-- name: DeleteScheduledTournament :exec
+DELETE FROM scheduled_tournaments
 WHERE
-  discord_id = $1
-  AND command_name = 'stats'
-  AND arguments ->> 'username' IS NOT NULL
-GROUP BY
-  arguments ->> 'username'
-ORDER BY
-  search_count DESC
-LIMIT
-  $2
+  (
+    server_code = $1
+    AND scheduled_at = $2
+  )
+"""
+
+GET_UPCOMING_OR_ONGOING_TOURNAMENTS: typing.Final[str] = """-- name: GetUpcomingOrOngoingTournaments :many
+SELECT
+  id, server_code, scheduled_at, ends_at, state
+FROM
+  scheduled_tournaments
+WHERE
+  state = 0
+  OR state = 1
+"""
+
+UPDATE_TOURNAMENT_STATE: typing.Final[str] = """-- name: UpdateTournamentState :exec
+UPDATE scheduled_tournaments
+SET
+  state = $2
+WHERE
+  id = $1
 """
 
 
@@ -104,11 +113,19 @@ class QueryResults(typing.Generic[T]):
         return self._decode_hook(record)
 
 
-async def add_command_usage(conn: ConnectionLike, *, command_name: str, discord_id: int, arguments: str | None) -> None:
-    await conn.execute(ADD_COMMAND_USAGE, command_name, discord_id, arguments)
+async def add_scheduled_tournament(conn: ConnectionLike, *, server_code: int, scheduled_at: datetime.datetime, ends_at: datetime.datetime | None, state: int | None) -> None:
+    await conn.execute(ADD_SCHEDULED_TOURNAMENT, server_code, scheduled_at, ends_at, state)
 
 
-def get_searched_stats_usernames_by_discord_id(conn: ConnectionLike, *, discord_id: int, limit: int) -> QueryResults[GetSearchedStatsUsernamesByDiscordIdRow]:
-    def _decode_hook(row: asyncpg.Record) -> GetSearchedStatsUsernamesByDiscordIdRow:
-        return GetSearchedStatsUsernamesByDiscordIdRow(username=row[0], search_count=row[1])
-    return QueryResults[GetSearchedStatsUsernamesByDiscordIdRow](conn, GET_SEARCHED_STATS_USERNAMES_BY_DISCORD_ID, _decode_hook, discord_id, limit)
+async def delete_scheduled_tournament(conn: ConnectionLike, *, server_code: int, scheduled_at: datetime.datetime) -> None:
+    await conn.execute(DELETE_SCHEDULED_TOURNAMENT, server_code, scheduled_at)
+
+
+def get_upcoming_or_ongoing_tournaments(conn: ConnectionLike) -> QueryResults[models.ScheduledTournament]:
+    def _decode_hook(row: asyncpg.Record) -> models.ScheduledTournament:
+        return models.ScheduledTournament(id=row[0], server_code=row[1], scheduled_at=row[2], ends_at=row[3], state=row[4])
+    return QueryResults[models.ScheduledTournament](conn, GET_UPCOMING_OR_ONGOING_TOURNAMENTS, _decode_hook)
+
+
+async def update_tournament_state(conn: ConnectionLike, *, id_: int, state: int) -> None:
+    await conn.execute(UPDATE_TOURNAMENT_STATE, id_, state)

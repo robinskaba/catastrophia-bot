@@ -19,5 +19,6 @@ PyNaCl==1.6.2
 python-dotenv==1.2.3
 requests==2.32.5
 sqlc-bin==1.31.1.post1
+tzdata==2026.4
 urllib3==2.8.0
 yarl==1.25.1

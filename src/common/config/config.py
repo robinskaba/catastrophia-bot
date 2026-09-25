@@ -28,6 +28,8 @@ def _require_config(key: str):
 
 
 class Env:
+    ENVIRONMENT = _require_env("ENVIRONMENT")  # DEV / PROD
+
     BOT_TOKEN = _require_env("BOT_TOKEN")
     APPLICATION_ID = int(_require_env("APPLICATION_ID"))
     GUILD_ID = int(_require_env("GUILD_ID"))
@@ -68,3 +70,5 @@ class Config:
     SERVER_STATE_MSGS_TOPIC = _require_config("SERVER_STATE_MSGS_TOPIC")
     SERVER_STATE_MEMORY_STORE = _require_config("SERVER_STATE_MEMORY_STORE")
     SERVERS = _require_config("SERVERS")
+
+    TIMEZONE = _require_config("TIMEZONE")

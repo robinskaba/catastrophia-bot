@@ -8,6 +8,7 @@ __all__: collections.abc.Sequence[str] = (
     "CommandUsage",
     "Creator",
     "RobloxUsernameCache",
+    "ScheduledTournament",
 )
 
 import dataclasses
@@ -38,3 +39,12 @@ class RobloxUsernameCache:
     user_id: int
     username: str
     updated_at: datetime.datetime | None
+
+
+@dataclasses.dataclass()
+class ScheduledTournament:
+    id: int
+    server_code: int
+    scheduled_at: datetime.datetime
+    ends_at: datetime.datetime | None
+    state: int

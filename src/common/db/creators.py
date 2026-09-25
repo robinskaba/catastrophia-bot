@@ -17,8 +17,9 @@ if typing.TYPE_CHECKING:
     import asyncpg
     import asyncpg.cursor
     import collections.abc
+    import datetime
 
-    QueryResultsArgsType: typing.TypeAlias = int | float | str | memoryview | None
+    QueryResultsArgsType: typing.TypeAlias = int | float | str | memoryview | datetime.date | datetime.time | datetime.datetime | datetime.timedelta | None
 
     ConnectionLike: typing.TypeAlias = asyncpg.Connection[asyncpg.Record] | asyncpg.pool.PoolConnectionProxy[asyncpg.Record]
 
