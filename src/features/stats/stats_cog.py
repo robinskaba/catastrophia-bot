@@ -120,6 +120,9 @@ class StatsCog(commands.Cog):
     @tasks.loop(hours=24)
     async def show_top_playtimes(self):
         top_players_channel = self._bot.get_channel(Config.TOP_PLAYERS_CHANNEL_ID)
+        if not top_players_channel:
+            _logger.warning("missing top players channel")
+            return
         messages = [message async for message in top_players_channel.history(limit=1)]
         last_msg = messages[0] if messages and len(messages) > 0 else None
         if last_msg:
