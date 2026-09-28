@@ -2,6 +2,7 @@ import calendar
 import json
 import logging
 from discord import Color, Embed, Interaction, Member, Object
+from discord import app_commands
 from discord.app_commands import autocomplete, choices, command, describe, Choice
 from discord.ext import commands, tasks
 from src.common.config.config import Config
@@ -292,6 +293,28 @@ class StatsCog(commands.Cog):
 
         embed = Embed(title=title, description=leaderboard_txt, color=Color.random())
         await interaction.followup.send(embed=embed)
+
+    @app_commands.command(
+        name="transfer-stats",
+        description="Transfers playtime and leaderboards stats from one account to another (overwrites target stats).",
+    )
+    async def transfer_stats(
+        self, interaction: Interaction, source_username: str, target_username: str
+    ):
+        ephemeral = True
+        await interaction.response.defer(ephemeral=ephemeral)
+        ok = await self._stats_service.transfer_stats(source_username, target_username)
+        if ok:
+            embed = Embed(
+                title="Transferring stats was successful", color=Color.green()
+            )
+        else:
+            embed = Embed(
+                title="Failed to transfer stats",
+                # TODO add specific error message in description
+                color=Color.red(),
+            )
+        await interaction.followup.send(embed=embed, ephemeral=ephemeral)
 
 
 async def setup(bot: commands.Bot) -> None:

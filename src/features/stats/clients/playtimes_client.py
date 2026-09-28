@@ -1,7 +1,13 @@
-import aiohttp
+import logging
 
-from src.common.config.config import Config
+import aiohttp
+from discord import user
+from requests import head
+
+from src.common.config.config import Config, Env
 from src.features.users.clients.experience_client import ExperienceClient
+
+_logger = logging.getLogger(__name__)
 
 
 class PlaytimesClient(ExperienceClient):
@@ -41,3 +47,32 @@ class PlaytimesClient(ExperienceClient):
             return None
         else:
             return data["value"]
+
+    async def patch(self, username: str, playtime: int) -> bool:
+        # universe.ordered-data-store.scope.entry:write
+        endpoint = f"https://apis.roblox.com/cloud/v2/universes/{Env.UNIVERSE_ID}/ordered-data-stores/{Config.PLAYTIMES_DATASTORE_NAME}/scopes/global/entries/{username}"
+        params = {
+            "allowMissing": "true",
+        }
+        payload = {"value": playtime}
+        try:
+            async with self._session.patch(
+                url=endpoint, headers=self.headers, params=params, json=payload
+            ) as response:
+                response.raise_for_status()
+        except aiohttp.ClientError as e:
+            _logger.error(f"failed to update playtime of {username}: {e}")
+            return False
+        return True
+
+    async def delete(self, username: str) -> bool:
+        endpoint = f"https://apis.roblox.com/cloud/v2/universes/{Env.UNIVERSE_ID}/ordered-data-stores/{Config.PLAYTIMES_DATASTORE_NAME}/scopes/global/entries/{username}"
+        try:
+            async with self._session.delete(
+                url=endpoint, headers=self.headers
+            ) as response:
+                response.raise_for_status()
+        except aiohttp.ClientError as e:
+            _logger.error(f"failed to delete playtime of {username}: {e}")
+            return False
+        return True

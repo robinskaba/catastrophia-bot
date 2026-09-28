@@ -77,6 +77,9 @@ class UserService:
     async def get_robux_spent(self, user: User) -> int:
         return await self._spender_client.get_roblox_spent(user.name)
 
+    async def set_robux_spent(self, user: User, amount: int) -> bool:
+        return await self._spender_client.set_robux_spent(user.name, amount)
+
     async def add_user_restriction(
         self, user: User, reason: str, duration_in_hours: int, ban_alts=True
     ) -> bool:

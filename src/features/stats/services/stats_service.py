@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+import logging
 
 import aiohttp
 import asyncpg
@@ -9,6 +10,8 @@ from src.features.stats.clients.playtimes_client import PlaytimesClient
 from src.features.stats.model.game_stats import GameStats
 from src.features.users.clients.user_client import UserClient
 from src.features.users.services.user_service import UserService
+
+_logger = logging.getLogger(__name__)
 
 
 class StatsService:
@@ -125,3 +128,46 @@ class StatsService:
         total = sum(x.search_count for x in searches)
         searches.sort(key=lambda a: a.search_count, reverse=True)
         return [(x.username, x.search_count / total * 100) for x in searches]
+
+    async def transfer_stats(self, source_username: str, target_username: str) -> bool:
+        # identification
+        source_user = await self._user_service.get_user(source_username)
+        target_user = await self._user_service.get_user(target_username)
+        if not source_user or not target_user:
+            # TODO propagate error
+            _logger.error("failed to transfer stats - unknown users")
+            return False
+
+        # fetch
+        source_playtime = await self._playtimes_client.get(source_username)
+        source_stats = await self._leaderboard_client.get_player_stats(source_user.id)
+        source_robux = await self._user_service.get_robux_spent(source_user)
+        if not source_playtime or not source_stats or not source_robux:
+            _logger.error(
+                f"failed to transfer stats - missing source data ({source_playtime=}, {source_stats=}, {source_robux=})"
+            )
+            return False
+
+        # transfer
+        playtime_transfer = await self._playtimes_client.patch(
+            target_username, source_playtime
+        )
+        stats_transfer = await self._leaderboard_client.set_player_stats(
+            target_user.id, source_stats
+        )
+        robux_transfer = await self._user_service.set_robux_spent(
+            target_user, source_robux
+        )
+        if not playtime_transfer or not stats_transfer or not robux_transfer:
+            _logger.error("failed to transfer stats - problem during migration")
+            return False
+
+        # clean up of old data
+        clean_playtime = await self._playtimes_client.delete(source_username)
+        clean_stats = await self._leaderboard_client.delete_player_stats(source_user.id)
+        clean_robux = await self._user_service.set_robux_spent(source_user, 0)
+        if not clean_playtime or not clean_stats or not clean_robux:
+            _logger.error("failed to transfer stats - problem deleting source data")
+            return False
+
+        return True
