@@ -11,6 +11,8 @@ from src.common.config.config import Config
 from src.common.db import models
 from src.common.db.tournaments import (
     add_scheduled_tournament,
+    delete_scheduled_tournament,
+    get_tournament_by_id,
     get_upcoming_or_ongoing_tournaments,
     update_tournament_state,
 )
@@ -80,6 +82,15 @@ class ServerService:
             _logger.info(
                 f"scheduled tournament on {server_code} at {when.strftime('%d.%m.%Y %H:%M')}"
             )
+            return True
+
+    async def cancel_tournament(self, tournament_id: int) -> int:
+        async with self._pool.acquire() as conn:
+            tournament = await get_tournament_by_id(conn, id_=tournament_id)
+            if not tournament:
+                return False
+            await delete_scheduled_tournament(conn, id_=tournament_id)
+            _logger.info(f"cancelled tournament {tournament_id}")
             return True
 
     async def get_upcoming_tournaments(self) -> list[models.ScheduledTournament]:

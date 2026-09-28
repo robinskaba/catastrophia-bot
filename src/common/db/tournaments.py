@@ -8,6 +8,7 @@ __all__: collections.abc.Sequence[str] = (
     "QueryResults",
     "add_scheduled_tournament",
     "delete_scheduled_tournament",
+    "get_tournament_by_id",
     "get_upcoming_or_ongoing_tournaments",
     "update_tournament_state",
 )
@@ -44,10 +45,18 @@ VALUES
 DELETE_SCHEDULED_TOURNAMENT: typing.Final[str] = """-- name: DeleteScheduledTournament :exec
 DELETE FROM scheduled_tournaments
 WHERE
-  (
-    server_code = $1
-    AND scheduled_at = $2
-  )
+  id = $1
+"""
+
+GET_TOURNAMENT_BY_ID: typing.Final[str] = """-- name: GetTournamentById :one
+SELECT
+  id, server_code, scheduled_at, ends_at, state
+FROM
+  scheduled_tournaments
+WHERE
+  id = $1
+LIMIT
+  1
 """
 
 GET_UPCOMING_OR_ONGOING_TOURNAMENTS: typing.Final[str] = """-- name: GetUpcomingOrOngoingTournaments :many
@@ -117,8 +126,15 @@ async def add_scheduled_tournament(conn: ConnectionLike, *, server_code: int, sc
     await conn.execute(ADD_SCHEDULED_TOURNAMENT, server_code, scheduled_at, ends_at, state)
 
 
-async def delete_scheduled_tournament(conn: ConnectionLike, *, server_code: int, scheduled_at: datetime.datetime) -> None:
-    await conn.execute(DELETE_SCHEDULED_TOURNAMENT, server_code, scheduled_at)
+async def delete_scheduled_tournament(conn: ConnectionLike, *, id_: int) -> None:
+    await conn.execute(DELETE_SCHEDULED_TOURNAMENT, id_)
+
+
+async def get_tournament_by_id(conn: ConnectionLike, *, id_: int) -> models.ScheduledTournament | None:
+    row = await conn.fetchrow(GET_TOURNAMENT_BY_ID, id_)
+    if row is None:
+        return None
+    return models.ScheduledTournament(id=row[0], server_code=row[1], scheduled_at=row[2], ends_at=row[3], state=row[4])
 
 
 def get_upcoming_or_ongoing_tournaments(conn: ConnectionLike) -> QueryResults[models.ScheduledTournament]:

@@ -9,6 +9,16 @@ VALUES
     sqlc.narg ('state')
   );
 
+-- name: GetTournamentById :one
+SELECT
+  *
+FROM
+  scheduled_tournaments
+WHERE
+  id = $1
+LIMIT
+  1;
+
 -- name: GetUpcomingOrOngoingTournaments :many
 SELECT
   *
@@ -21,10 +31,7 @@ WHERE
 -- name: DeleteScheduledTournament :exec
 DELETE FROM scheduled_tournaments
 WHERE
-  (
-    server_code = $1
-    AND scheduled_at = $2
-  );
+  id = $1;
 
 -- name: UpdateTournamentState :exec
 UPDATE scheduled_tournaments

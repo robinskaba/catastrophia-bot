@@ -159,6 +159,29 @@ class ServerCog(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=ephemeral)
 
     @app_commands.command(
+        name="cancel-tournament", description="Cancels a scheduled tournament."
+    )
+    @app_commands.describe(
+        tournament_id="Tournament [ID] specified in /list-scheduled-tournaments"
+    )
+    async def cancel_tournament(self, interaction: Interaction, tournament_id: int):
+        ephemeral = True
+        await interaction.response.defer(ephemeral=ephemeral)
+
+        success = await self._server_service.cancel_tournament(tournament_id)
+        if success:
+            embed = Embed(
+                title=f"Cancelled tournament [{tournament_id}]", color=Color.green()
+            )
+        else:
+            embed = Embed(
+                title="Failed to cancel the tournament.",
+                description="Probably an invalid tournament ID.",
+                color=Color.red(),
+            )
+        await interaction.followup.send(embed=embed, ephemeral=ephemeral)
+
+    @app_commands.command(
         name="list-scheduled-tournaments",
         description="Lists upcoming or on-going tournaments.",
     )
@@ -177,7 +200,7 @@ class ServerCog(commands.Cog):
                     if tour.ends_at
                     else None
                 )
-                out += f"{server_name}: {tour.scheduled_at.astimezone(local_tz).strftime(_FULL_STRF)}{ ' - ' + ends_at if ends_at else ''}\n"
+                out += f"[{tour.id}] {server_name}: {tour.scheduled_at.astimezone(local_tz).strftime(_FULL_STRF)}{ ' - ' + ends_at if ends_at else ''}\n"
         else:
             out = "No scheduled tournaments"
 
