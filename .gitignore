@@ -11,3 +11,4 @@ temp
 
 # private information
 config.json
+config.*.json

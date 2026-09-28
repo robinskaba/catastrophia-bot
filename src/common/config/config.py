@@ -2,28 +2,15 @@ import json
 import os
 from dotenv import load_dotenv
 
-ENV_FILE_PATH = ".env"
-CONFIG_FILE_PATH = "config.json"
+# region Environment
 
-load_dotenv(ENV_FILE_PATH)
-
-_json_data = {}
-if os.path.exists(CONFIG_FILE_PATH):
-    with open(CONFIG_FILE_PATH, "r") as f:
-        _json_data = json.load(f)
+load_dotenv(".env")
 
 
 def _require_env(key: str) -> str:
     val = os.getenv(key)
     if val is None:
         raise KeyError(f"Missing required ENV variable: {key}")
-    return val
-
-
-def _require_config(key: str):
-    val = _json_data.get(key)
-    if val is None:
-        raise KeyError(f"Missing required Config key: {key}")
     return val
 
 
@@ -38,6 +25,23 @@ class Env:
     UNIVERSE_ID = _require_env("UNIVERSE_ID")
 
     TRANSLATION_ENDPOINT = _require_env("TRANSLATION_ENDPOINT")
+
+
+# endregion
+
+# region Configuration
+_json_data = {}
+_config_path = "config.dev.json" if Env.ENVIRONMENT == "DEV" else "config.json"
+if os.path.exists(_config_path):
+    with open(_config_path, "r") as f:
+        _json_data = json.load(f)
+
+
+def _require_config(key: str):
+    val = _json_data.get(key)
+    if val is None:
+        raise KeyError(f"Missing required Config key: {key}")
+    return val
 
 
 class Config:
@@ -72,3 +76,6 @@ class Config:
     SERVERS = _require_config("SERVERS")
 
     TIMEZONE = _require_config("TIMEZONE")
+
+
+# endregion
