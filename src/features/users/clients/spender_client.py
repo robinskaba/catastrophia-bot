@@ -14,7 +14,7 @@ class SpenderClient(ExperienceClient):
 
         self._spender_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Config.SPENDERS_DATASTORE_NAME}/scopes/global/entries"
 
-    async def get_roblox_spent(self, username: str) -> int:
+    async def get_robux_spent(self, username: str) -> int:
         endpoint = self._spender_endpoint + "/" + username
 
         try:

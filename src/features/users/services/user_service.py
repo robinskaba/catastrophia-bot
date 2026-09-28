@@ -75,7 +75,7 @@ class UserService:
         return await self._restrictions_client.get_user_restrictions(user.id)
 
     async def get_robux_spent(self, user: User) -> int:
-        return await self._spender_client.get_roblox_spent(user.name)
+        return await self._spender_client.get_robux_spent(user.name)
 
     async def set_robux_spent(self, user: User, amount: int) -> bool:
         return await self._spender_client.set_robux_spent(user.name, amount)
