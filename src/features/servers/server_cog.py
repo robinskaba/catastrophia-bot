@@ -68,6 +68,7 @@ class ServerCog(commands.Cog):
     @app_commands.command(
         name="start-tournament", description="Opens the server for a tournament."
     )
+    @app_commands.describe(server="Abbreviation of the server name")
     async def start_tournament(self, interaction: Interaction, server: str) -> None:
         is_ephemeral = True
         await interaction.response.defer(ephemeral=is_ephemeral)
@@ -93,6 +94,7 @@ class ServerCog(commands.Cog):
     @app_commands.command(
         name="end-tournament", description="Closes the server and recharges it."
     )
+    @app_commands.describe(server="Abbreviation of the server name")
     async def end_tournament(self, interaction: Interaction, server: str) -> None:
         is_ephemeral = True
         await interaction.response.defer(ephemeral=is_ephemeral)
