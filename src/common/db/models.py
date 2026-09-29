@@ -7,6 +7,7 @@ from __future__ import annotations
 __all__: collections.abc.Sequence[str] = (
     "CommandUsage",
     "Creator",
+    "GameStat",
     "RobloxUsernameCache",
     "ScheduledTournament",
 )
@@ -32,6 +33,14 @@ class CommandUsage:
 class Creator:
     discord_id: int
     since: float | None
+
+
+@dataclasses.dataclass()
+class GameStat:
+    id: int
+    playing: int
+    visits: int
+    recorded_at: datetime.datetime | None
 
 
 @dataclasses.dataclass()

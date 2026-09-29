@@ -22,3 +22,10 @@ CREATE TABLE IF NOT EXISTS scheduled_tournaments (
   state INT NOT NULL DEFAULT 0,
   UNIQUE (server_code, scheduled_at)
 );
+
+CREATE TABLE IF NOT EXISTS game_stats (
+  id SERIAL PRIMARY KEY,
+  playing INT NOT NULL,
+  visits INT NOT NULL,
+  recorded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
