@@ -5,7 +5,8 @@ import logging
 import aiohttp
 import asyncpg
 from src.common.db.command_usage import get_searched_stats_usernames_by_discord_id
-from src.common.db.game_stats import create_game_stats_record
+from src.common.db.game_stats import create_game_stats_record, get_latest_game_stats
+from src.common.db.models import GameStat
 from src.features.stats.clients.game_client import GameClient
 from src.features.stats.clients.leaderboards_client import LeaderboardsClient
 from src.features.stats.clients.playtimes_client import PlaytimesClient
@@ -115,15 +116,19 @@ class StatsService:
 
         return results
 
-    async def get_game_stats(self) -> GameStats | None:
+    async def record_game_stats(self):
         stats = await self._game_client.get_game_stats()
         if not stats:
-            return None
+            _logger.warning("failed to fetch game stats from API")
+            return
         async with self._pool.acquire() as conn:
             await create_game_stats_record(
                 conn, playing=stats.playing, visits=stats.visits
             )
-        return stats
+
+    async def get_game_stats(self) -> GameStat | None:
+        async with self._pool.acquire() as conn:
+            return await get_latest_game_stats(conn)
 
     async def get_predicted_usernames_from_searches(
         self, discord_id: int

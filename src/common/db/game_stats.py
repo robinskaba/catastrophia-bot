@@ -6,6 +6,7 @@ from __future__ import annotations
 
 __all__: collections.abc.Sequence[str] = (
     "create_game_stats_record",
+    "get_latest_game_stats",
 )
 
 import dataclasses
@@ -32,6 +33,24 @@ VALUES
   ($1, $2)
 """
 
+GET_LATEST_GAME_STATS: typing.Final[str] = """-- name: GetLatestGameStats :one
+SELECT
+  id, playing, visits, recorded_at
+FROM
+  game_stats
+ORDER BY
+  recorded_at DESC
+LIMIT
+  1
+"""
+
 
 async def create_game_stats_record(conn: ConnectionLike, *, playing: int, visits: int) -> None:
     await conn.execute(CREATE_GAME_STATS_RECORD, playing, visits)
+
+
+async def get_latest_game_stats(conn: ConnectionLike) -> models.GameStat | None:
+    row = await conn.fetchrow(GET_LATEST_GAME_STATS)
+    if row is None:
+        return None
+    return models.GameStat(id=row[0], playing=row[1], visits=row[2], recorded_at=row[3])

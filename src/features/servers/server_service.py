@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 import aiohttp
 import asyncpg
+from nacl.exceptions import ensure
 
 from src.common.config.config import Config
 from src.common.db import models
@@ -36,14 +37,31 @@ class ServerService:
 
     async def start_tournament(self, server_code: int) -> bool:
         # mark started tournament as scheduled
+        now = datetime.now(local_tz)
         async with self._pool.acquire() as conn:
-            await add_scheduled_tournament(
-                conn,
-                server_code=server_code,
-                scheduled_at=datetime.now(local_tz),
-                ends_at=None,
-                state=1,
-            )
+            # clean out overlapping tournaments
+            tournaments = await get_upcoming_or_ongoing_tournaments(conn)
+            already_open = False
+            if len(tournaments) > 0:
+                for tour in tournaments:
+                    if tour.server_code != server_code:
+                        continue
+                    if tour.scheduled_at <= now:
+                        already_open = True
+                        break
+
+            if not already_open:
+                await add_scheduled_tournament(
+                    conn,
+                    server_code=server_code,
+                    scheduled_at=now,
+                    ends_at=None,
+                    state=1,
+                )
+            else:
+                _logger.warning(
+                    f"skipping adding a database entry for a new tournament on {server_code} since one is already present"
+                )
         return await self._open_server_for_tournament(server_code)
 
     async def end_tournament(self, server_code: int) -> bool:

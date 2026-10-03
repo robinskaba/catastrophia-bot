@@ -29,3 +29,5 @@ CREATE TABLE IF NOT EXISTS game_stats (
   visits INT NOT NULL,
   recorded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_recorded_at ON game_stats (recorded_at);

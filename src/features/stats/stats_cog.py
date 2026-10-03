@@ -91,10 +91,16 @@ class StatsCog(commands.Cog):
 
         self.show_top_playtimes.start()
         self.update_game_stats.start()
+        self.record_game_stats.start()
 
     async def cog_unload(self):
         self.show_top_playtimes.cancel()
         self.update_game_stats.cancel()
+        self.record_game_stats.cancel()
+
+    @tasks.loop(seconds=30)
+    async def record_game_stats(self):
+        await self._stats_service.record_game_stats()
 
     @tasks.loop(minutes=15)
     async def update_game_stats(self):
