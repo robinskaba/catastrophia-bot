@@ -12,14 +12,19 @@ from src.features.stats.clients.leaderboards_client import LeaderboardsClient
 from src.features.stats.clients.playtimes_client import PlaytimesClient
 from src.features.stats.model.game_stats import GameStats
 from src.features.users.clients.user_client import UserClient
-from src.features.users.services.user_service import UserService
+from src.features.users.user_service import UserService
 
 _logger = logging.getLogger(__name__)
 
 
 class StatsService:
 
-    def __init__(self, session: aiohttp.ClientSession, pool: asyncpg.Pool, user_service: UserService):
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        pool: asyncpg.Pool,
+        user_service: UserService,
+    ):
         self._pool: asyncpg.Pool = pool
 
         self._playtimes_client = PlaytimesClient(session)
