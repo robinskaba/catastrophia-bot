@@ -10,7 +10,6 @@ from src.common.db.models import GameStat
 from src.features.stats.clients.game_client import GameClient
 from src.features.stats.clients.leaderboards_client import LeaderboardsClient
 from src.features.stats.clients.playtimes_client import PlaytimesClient
-from src.features.stats.model.game_stats import GameStats
 from src.features.users.clients.user_client import UserClient
 from src.features.users.user_service import UserService
 
@@ -109,9 +108,8 @@ class StatsService:
             _logger.warning("failed to fetch game stats from API")
             return
         async with self._pool.acquire() as conn:
-            await create_game_stats_record(
-                conn, playing=stats.playing, visits=stats.visits
-            )
+            playing, visits = stats
+            await create_game_stats_record(conn, playing=playing, visits=visits)
 
     async def get_game_stats(self) -> GameStat | None:
         async with self._pool.acquire() as conn:
