@@ -95,9 +95,6 @@ class StatsService:
             # try retrieving cached data
             async with self._pool.acquire() as conn:
                 period = f"{month:02d}_{year}" if month else f"{year}"
-                _logger.debug(
-                    f"retrieving leaderboards for period {period} from cache.."
-                )
                 leaderboards_cache = await get_leaderboards_cache(conn, period=period)
                 if (
                     not leaderboards_cache
@@ -114,7 +111,6 @@ class StatsService:
                     await upsert_leaderboards_cache(
                         conn, period=period, leaderboard_data=json.dumps(leaderboards)
                     )
-                    _logger.debug(f"cached leaderboards for period {period}")
                 else:
                     leaderboards = json.loads(leaderboards_cache.leaderboard_data)
 
