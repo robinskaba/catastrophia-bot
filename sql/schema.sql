@@ -40,3 +40,9 @@ CREATE TABLE IF NOT EXISTS leaderboards_cache (
   leaderboard_data JSONB NOT NULL,
   refreshed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP -- useful if a player's stats get migrated
 );
+
+CREATE TABLE IF NOT EXISTS player_stats_cache (
+  user_id BIGINT PRIMARY KEY,
+  stats JSONB NOT NULL,
+  refreshed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+)

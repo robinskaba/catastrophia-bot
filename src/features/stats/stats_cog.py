@@ -213,7 +213,7 @@ class StatsCog(commands.Cog):
             return
 
         title = f"{user.name}'s stats{title_range_suffix}"
-        stats = await self._bot.stats_service.get_player_stats(
+        stats = await self._bot.stats_service.get_player_stats_for_period(
             user.id, month=month, year=year
         )
         if not stats:
@@ -384,7 +384,7 @@ class StatsCog(commands.Cog):
         # draw graph
         hex_color = _LEADERBOARD_COLORS.get(stat_key, "#5865F2")
         discord_color = Color.from_str(hex_color)
-        
+
         graph_file = await create_line_graph(
             title=title,
             x_data=formatted_months,

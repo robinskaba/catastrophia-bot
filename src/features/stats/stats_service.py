@@ -14,6 +14,10 @@ from src.common.db.leaderboards_cache import (
     upsert_leaderboards_cache,
 )
 from src.common.db.models import GameStat
+from src.common.db.player_stats_cache import (
+    get_player_stats_cache,
+    upsert_player_stats_cache,
+)
 from src.features.stats.clients.game_client import GameClient
 from src.features.stats.clients.leaderboards_client import LeaderboardsClient
 from src.features.stats.clients.playtimes_client import PlaytimesClient
@@ -22,6 +26,9 @@ from src.features.users.user_service import UserService
 
 _logger = logging.getLogger(__name__)
 _local_tz = ZoneInfo(Config.TIMEZONE)
+
+
+_PLAYER_STATS_CACHE_LIFETIME_SECONDS = 15 * 60
 
 
 class StatsService:
@@ -41,14 +48,34 @@ class StatsService:
 
         self._user_service = user_service
 
+    async def _fetch_player_stats(self, user_id: str) -> dict | None:
+        async with self._pool.acquire() as conn:
+            stats_cache = await get_player_stats_cache(conn, user_id=user_id)
+            if (
+                not stats_cache
+                or (
+                    datetime.now(tz=stats_cache.refreshed_at.tzinfo)
+                    - stats_cache.refreshed_at
+                ).seconds
+                > _PLAYER_STATS_CACHE_LIFETIME_SECONDS
+            ):
+                current_stats = await self._leaderboard_client.get_player_stats(user_id)
+                if not current_stats:
+                    return None
+                await upsert_player_stats_cache(
+                    conn, user_id=user_id, stats=json.dumps(current_stats)
+                )
+                return current_stats
+            return json.loads(stats_cache.stats)
+
     async def get_player_playtime(self, username: str) -> int:
         playtime = await self._playtimes_client.get(username)
         return playtime if playtime else 0
 
-    async def get_player_stats(
+    async def get_player_stats_for_period(
         self, user_id: str, month: int | None, year: int | None
     ) -> dict | None:
-        player_stats = await self._leaderboard_client.get_player_stats(user_id)
+        player_stats = await self._fetch_player_stats(user_id)
         if not player_stats:
             return None
         if not month and not year:
@@ -60,7 +87,7 @@ class StatsService:
     async def get_player_stats_graphed(
         self, user_id: str, stat_key: str
     ) -> tuple[list[str], list[int]] | None:
-        data = await self._leaderboard_client.get_player_stats(user_id)
+        data = await self._fetch_player_stats(user_id)
         if not data:
             return None
 

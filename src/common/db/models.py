@@ -9,6 +9,7 @@ __all__: collections.abc.Sequence[str] = (
     "Creator",
     "GameStat",
     "LeaderboardsCache",
+    "PlayerStatsCache",
     "RobloxUsernameCache",
     "ScheduledTournament",
 )
@@ -48,6 +49,13 @@ class GameStat:
 class LeaderboardsCache:
     period: str
     leaderboard_data: str
+    refreshed_at: datetime.datetime
+
+
+@dataclasses.dataclass()
+class PlayerStatsCache:
+    user_id: int
+    stats: str
     refreshed_at: datetime.datetime
 
 
