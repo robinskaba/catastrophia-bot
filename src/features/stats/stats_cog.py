@@ -4,11 +4,19 @@ import logging
 from datetime import UTC, datetime, timezone
 
 from discord import Color, Embed, Interaction, Member, Object, app_commands
-from discord.app_commands import Choice, autocomplete, choices, command, describe
+from discord.app_commands import (
+    Choice,
+    autocomplete,
+    choices,
+    command,
+    describe,
+    rename,
+)
 from discord.ext import commands, tasks
 
 from src.common.bot import CatastrophiaBot
 from src.common.config.config import Config
+from src.common.utils.graphing import create_line_graph
 
 _logger = logging.getLogger(__name__)
 
@@ -312,6 +320,75 @@ class StatsCog(commands.Cog):
                 color=Color.red(),
             )
         await interaction.followup.send(embed=embed, ephemeral=ephemeral)
+
+    @command(name="graphs", description="Shows a graph of player's stats.")
+    @rename(stat_key="stat")
+    @choices(stat_key=_LEADERBOARD_CHOICES)
+    @describe(
+        username="Whose stats to display (case insensitive).",
+        stat_key="Stats to graph",
+    )
+    async def graphs(
+        self, interaction: Interaction, username: str, stat_key: str
+    ) -> None:
+        await interaction.response.defer()
+
+        if _is_confidential(username) and not _is_owner(interaction.user):
+            await interaction.followup.send("This is confidential.")
+            return
+
+        user = await self._bot.user_service.get_user(username)
+        username = user.name if user else username
+        title = f"{username}'s {_LEADERBOARD_FULL_NAMES[stat_key].lower()}"
+        if not user:
+            await interaction.followup.send(
+                embed=Embed(
+                    title=title,
+                    description="This player does not exist.",
+                    color=Color.red(),
+                )
+            )
+            return
+
+        graph_data = await self._bot.stats_service.get_player_stats_graphed(
+            user_id=user.id, stat_key=stat_key
+        )
+        if not graph_data:
+            await interaction.followup.send(
+                embed=Embed(
+                    title=title, description="No statistics found.", color=Color.red()
+                )
+            )
+            return
+
+        months, values = graph_data
+
+        # format x-axis (07_2026 -> Jul '26)
+        formatted_months = [
+            datetime.strptime(m, "%m_%Y").strftime("%b '%y") for m in months
+        ]
+
+        # formatting
+        formatting_suffix = ""
+        if stat_key == "Playtime":
+            values = [x / 60 for x in values]
+            formatting_suffix = "h"
+
+        # draw graph
+        color = Color.random()  # TODO make persistent configurable leadeboards colors
+        graph_file = await create_line_graph(
+            title=title,
+            x_data=formatted_months,
+            y_data=values,
+            color=str(color),
+            y_tick_suffix=formatting_suffix,
+            x_tick_rotation=0,
+        )
+
+        embed = Embed(color=color)
+        embed.set_image(url="attachment://graph.png")
+
+        await interaction.followup.send(file=graph_file, embed=embed)
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -13,6 +13,8 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
         style="{",
     )
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
+    logging.getLogger("PIL").setLevel(logging.WARNING)
     apply_logging_filters()
 
     _logger.info("CatastrophiaBot is booting up...")

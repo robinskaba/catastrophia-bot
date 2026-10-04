@@ -1,10 +1,12 @@
 import json
 import logging
 from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
 import aiohttp
 import asyncpg
 
+from src.common.config.config import Config
 from src.common.db.command_usage import get_searched_stats_usernames_by_discord_id
 from src.common.db.game_stats import create_game_stats_record, get_latest_game_stats
 from src.common.db.leaderboards_cache import (
@@ -19,6 +21,7 @@ from src.features.users.clients.user_client import UserClient
 from src.features.users.user_service import UserService
 
 _logger = logging.getLogger(__name__)
+_local_tz = ZoneInfo(Config.TIMEZONE)
 
 
 class StatsService:
@@ -53,6 +56,28 @@ class StatsService:
         if month:
             return player_stats["Monthly"].get(f"{month:02d}_{year}")
         return player_stats["Yearly"].get(f"{year}")
+
+    async def get_player_stats_graphed(
+        self, user_id: str, stat_key: str
+    ) -> tuple[list[str], list[int]] | None:
+        data = await self._leaderboard_client.get_player_stats(user_id)
+        if not data:
+            return None
+
+        graph_months, graph_values = [], []
+
+        # extract months data
+        monthly_data = data.get("Monthly", {})
+        monthly_data.pop(
+            "06_2026", None
+        )  # when leaderboards released, makes graphs look bad
+        months_sorted = sorted(
+            monthly_data.keys(), key=lambda x: (x.split("_")[1], x.split("_")[0])
+        )
+        for month in months_sorted:
+            graph_months.append(month)
+            graph_values.append(monthly_data.get(month, {}).get(stat_key, 0))
+        return graph_months, graph_values
 
     async def get_top_playtimes(self) -> list[tuple]:
         top_times_data = await self._playtimes_client.getTop()
