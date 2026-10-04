@@ -11,6 +11,10 @@ from discord.ext import commands
 
 from src.common.config.config import Env
 from src.common.db.command_usage import add_command_usage
+from src.features.filtering.creator_service import CreatorService
+from src.features.servers.server_service import ServerService
+from src.features.stats.stats_service import StatsService
+from src.features.users.user_service import UserService
 
 _FEATURES_PATH = "src/features"
 _SCHEMA_PATH = "sql/schema.sql"
@@ -48,12 +52,7 @@ class CatastrophiaBot(commands.Bot):
             schema = file.read()
         await self.pool.execute(schema)
 
-        # initialize services
-        from src.features.filtering.creator_service import CreatorService
-        from src.features.servers.server_service import ServerService
-        from src.features.stats.stats_service import StatsService
-        from src.features.users.user_service import UserService
-
+        # initliaze services
         self.user_service = UserService(session=self.session, pool=self.pool)
         self.stats_service = StatsService(
             session=self.session, pool=self.pool, user_service=self.user_service
