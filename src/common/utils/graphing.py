@@ -5,7 +5,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 from discord import File
 
-# Use a non-interactive backend for thread safety when rendering images
 matplotlib.use("Agg")
 
 
@@ -25,8 +24,7 @@ def _generate_line_graph_sync(
 
     ax.plot(x_data, y_data, color=color, linewidth=2.5, marker="o", markersize=6)
     ax.fill_between(x_data, y_data, color=color, alpha=0.1)
-    
-    # Remove the horizontal gap before the first point and ensure the fill touches the bottom
+
     ax.margins(x=0)
     ax.set_ylim(bottom=0)
 
@@ -43,12 +41,18 @@ def _generate_line_graph_sync(
     if y_axis_title:
         ax.set_ylabel(y_axis_title, fontsize=11, color="#aaaaaa")
 
-    if y_tick_prefix or y_tick_suffix:
-        from matplotlib.ticker import StrMethodFormatter
+    from matplotlib.ticker import FuncFormatter
 
-        ax.yaxis.set_major_formatter(
-            StrMethodFormatter(f"{y_tick_prefix}{{x:g}}{y_tick_suffix}")
-        )
+    def format_y_ticks(x, pos):
+        if x.is_integer():
+            base = f"{int(x):,}"
+        else:
+            base = f"{x:,.1f}"
+
+        spaced = base.replace(",", " ")
+        return f"{y_tick_prefix}{spaced}{y_tick_suffix}"
+
+    ax.yaxis.set_major_formatter(FuncFormatter(format_y_ticks))
 
     ax.grid(color="#777777", linestyle="--", linewidth=0.5, alpha=0.3)
 
