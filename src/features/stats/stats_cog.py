@@ -31,8 +31,9 @@ def _is_owner(member: Member) -> bool:
 
 with open("assets/leaderboards.json", "r") as read:
     _data = json.load(read)
-    _LEADERBOARD_NAME_ORDER = _data["print_order"]
-    _LEADERBOARD_FULL_NAMES = _data["names"]
+    _LEADERBOARD_NAME_ORDER = [item["id"] for item in _data]
+    _LEADERBOARD_FULL_NAMES = {item["id"]: item["name"] for item in _data}
+    _LEADERBOARD_COLORS = {item["id"]: item.get("color", "#5865F2") for item in _data}
 
 _MONTHS_CHOICES = [
     Choice(name="January", value=1),
@@ -159,10 +160,13 @@ class StatsCog(commands.Cog):
             description_text = "\n".join(lines)
             title = "Top playtimes" if i == 0 else ""
 
+            hex_color = _LEADERBOARD_COLORS.get("Playtime", "#5865F2")
+            discord_color = Color.from_str(hex_color)
+
             embed = Embed(
                 title=title,
                 description=description_text,
-                color=Color.gold(),
+                color=discord_color,
             )
 
             await top_players_channel.send(embed=embed)
@@ -294,7 +298,10 @@ class StatsCog(commands.Cog):
             leaderboard_txt += f"{line}\n"
         leaderboard_txt = leaderboard_txt[:-1]
 
-        embed = Embed(title=title, description=leaderboard_txt, color=Color.random())
+        hex_color = _LEADERBOARD_COLORS.get(leaderboard, "#5865F2")
+        discord_color = Color.from_str(hex_color)
+
+        embed = Embed(title=title, description=leaderboard_txt, color=discord_color)
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(
@@ -375,17 +382,19 @@ class StatsCog(commands.Cog):
             formatting_suffix = "h"
 
         # draw graph
-        color = Color.random()  # TODO make persistent configurable leadeboards colors
+        hex_color = _LEADERBOARD_COLORS.get(stat_key, "#5865F2")
+        discord_color = Color.from_str(hex_color)
+        
         graph_file = await create_line_graph(
             title=title,
             x_data=formatted_months,
             y_data=values,
-            color=str(color),
+            color=hex_color,
             y_tick_suffix=formatting_suffix,
-            x_tick_rotation=0,
+            x_tick_rotation=45 if len(formatted_months) > 5 else 0,
         )
 
-        embed = Embed(color=color)
+        embed = Embed(color=discord_color)
         embed.set_image(url="attachment://graph.png")
 
         await interaction.followup.send(file=graph_file, embed=embed)

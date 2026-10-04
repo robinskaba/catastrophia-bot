@@ -1,36 +1,77 @@
-{
-    "names": {
-        "DynamitesUsed": "Used dynamite",
-        "PlacedBuildingParts": "Building parts",
-        "PlayersKilled": "Players killed",
-        "AnimalsKilled": "Animals killed",
-        "FarmedWood": "Farmed wood",
-        "FarmedStone": "Farmed stone",
-        "FarmedIronOre": "Farmed iron",
-        "FarmedSulfurOre": "Farmed sulfur",
-        "GrassCollected": "Grass collected",
-        "GoldenBerriesFound": "Golden berries",
-        "BerriesCollected": "Berries gathered",
-        "SoldiersKilled": "Soldiers killed",
-        "ZombiesKilled": "Zombies killed",
-        "GhostsKilled": "Ghosts killed",
-        "Playtime": "Playtime"
+[
+    {
+        "id": "Playtime",
+        "name": "Playtime",
+        "color": "#ffffff"
     },
-    "print_order": [
-        "Playtime",
-        "FarmedWood",
-        "FarmedStone",
-        "FarmedIronOre",
-        "FarmedSulfurOre",
-        "GrassCollected",
-        "GoldenBerriesFound",
-        "BerriesCollected",
-        "DynamitesUsed",
-        "PlacedBuildingParts",
-        "PlayersKilled",
-        "AnimalsKilled",
-        "SoldiersKilled",
-        "ZombiesKilled",
-        "GhostsKilled"
-    ]
-}
+    {
+        "id": "FarmedWood",
+        "name": "Farmed wood",
+        "color": "##80340b"
+    },
+    {
+        "id": "FarmedStone",
+        "name": "Farmed stone",
+        "color": "#585858"
+    },
+    {
+        "id": "FarmedIronOre",
+        "name": "Farmed iron",
+        "color": "#ff5500"
+    },
+    {
+        "id": "FarmedSulfurOre",
+        "name": "Farmed sulfur",
+        "color": "#ffff00"
+    },
+    {
+        "id": "GrassCollected",
+        "name": "Grass collected",
+        "color": "#1edf00"
+    },
+    {
+        "id": "GoldenBerriesFound",
+        "name": "Golden berries",
+        "color": "#ffd027"
+    },
+    {
+        "id": "BerriesCollected",
+        "name": "Berries gathered",
+        "color": "#df5e7c"
+    },
+    {
+        "id": "DynamitesUsed",
+        "name": "Used dynamite",
+        "color": "#ff7c11"
+    },
+    {
+        "id": "PlacedBuildingParts",
+        "name": "Building parts",
+        "color": "#0052aa"
+    },
+    {
+        "id": "PlayersKilled",
+        "name": "Players killed",
+        "color": "#ff0000"
+    },
+    {
+        "id": "AnimalsKilled",
+        "name": "Animals killed",
+        "color": "#005500"
+    },
+    {
+        "id": "SoldiersKilled",
+        "name": "Soldiers killed",
+        "color": "#aa681d"
+    },
+    {
+        "id": "ZombiesKilled",
+        "name": "Zombies killed",
+        "color": "#533102"
+    },
+    {
+        "id": "GhostsKilled",
+        "name": "Ghosts killed",
+        "color": "#00ffff"
+    }
+]
