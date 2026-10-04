@@ -12,7 +12,7 @@ from discord import (
 )
 from discord.ext import commands, tasks
 from src.common.config.config import Config
-from src.features.servers.server_service import ServerService
+from src.common.bot import CatastrophiaBot
 
 _logger = logging.getLogger(__name__)
 
@@ -47,15 +47,10 @@ def _get_server_name(code: int) -> str | None:
 class ServerCog(commands.Cog):
     """Cog for handling Catastrophia servers."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: CatastrophiaBot):
         self._bot = bot
 
-        self._server_service = ServerService()
-
     async def cog_load(self):
-        self._server_service.set_session(self._bot.session)
-        self._server_service.set_pool(self._bot.pool)
-
         self.handle_scheduled_tournaments.start()
 
     async def cog_unload(self):
@@ -63,7 +58,7 @@ class ServerCog(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def handle_scheduled_tournaments(self):
-        await self._server_service.handle_scheduled_tournaments()
+        await self._bot.server_service.handle_scheduled_tournaments()
 
     @app_commands.command(
         name="start-tournament", description="Opens the server for a tournament."
@@ -80,7 +75,7 @@ class ServerCog(commands.Cog):
                 content="Unknown server", ephemeral=is_ephemeral
             )
             return
-        success = await self._server_service.start_tournament(code)
+        success = await self._bot.server_service.start_tournament(code)
 
         title = (
             f"Tournament started on {server_name} ({server})"
@@ -106,7 +101,7 @@ class ServerCog(commands.Cog):
                 content="Unknown server", ephemeral=is_ephemeral
             )
             return
-        success = await self._server_service.end_tournament(code)
+        success = await self._bot.server_service.end_tournament(code)
 
         title = (
             f"Ended the tournament on {server_name} ({server})"
@@ -146,7 +141,7 @@ class ServerCog(commands.Cog):
         )
 
         when_dt = datetime.strptime(when, _FULL_STRF)
-        success = await self._server_service.schedule_tournament(
+        success = await self._bot.server_service.schedule_tournament(
             code, when_dt, duration_in_minutes
         )
 
@@ -168,7 +163,7 @@ class ServerCog(commands.Cog):
         ephemeral = True
         await interaction.response.defer(ephemeral=ephemeral)
 
-        success = await self._server_service.cancel_tournament(tournament_id)
+        success = await self._bot.server_service.cancel_tournament(tournament_id)
         if success:
             embed = Embed(
                 title=f"Cancelled tournament [{tournament_id}]", color=Color.green()
@@ -189,7 +184,7 @@ class ServerCog(commands.Cog):
         ephemeral = True
         await interaction.response.defer(ephemeral=ephemeral)
 
-        tournaments = await self._server_service.get_upcoming_tournaments()
+        tournaments = await self._bot.server_service.get_upcoming_tournaments()
 
         if len(tournaments) > 0:
             out = ""

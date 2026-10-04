@@ -18,34 +18,16 @@ _logger = logging.getLogger(__name__)
 
 
 class StatsService:
-    _instance = None
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
+    def __init__(self, session: aiohttp.ClientSession, pool: asyncpg.Pool, user_service: UserService):
+        self._pool: asyncpg.Pool = pool
 
-    def __init__(self):
-        self._pool: asyncpg.Pool | None = None
+        self._playtimes_client = PlaytimesClient(session)
+        self._leaderboard_client = LeaderboardsClient(session)
+        self._user_client = UserClient(session)
+        self._game_client = GameClient(session)
 
-        self._playtimes_client = PlaytimesClient()
-        self._leaderboard_client = LeaderboardsClient()
-        self._user_client = UserClient()
-        self._game_client = GameClient()
-
-        self._user_service = None
-
-    def set_services(self, user_service: UserService):
         self._user_service = user_service
-
-    def set_session(self, session: aiohttp.ClientSession):
-        self._playtimes_client.set_session(session)
-        self._leaderboard_client.set_session(session)
-        self._user_client.set_session(session)
-        self._game_client.set_session(session)
-
-    def set_pool(self, pool: asyncpg.Pool):
-        self._pool = pool
 
     async def get_player_playtime(self, username: str) -> int:
         playtime = await self._playtimes_client.get(username)

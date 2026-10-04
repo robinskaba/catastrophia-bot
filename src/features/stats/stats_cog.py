@@ -8,8 +8,7 @@ from discord.ext import commands, tasks
 from src.common.config.config import Config
 from datetime import UTC, datetime, timezone
 
-from src.features.stats.services.stats_service import StatsService
-from src.features.users.services.user_service import UserService
+from src.common.bot import CatastrophiaBot
 
 _logger = logging.getLogger(__name__)
 
@@ -75,20 +74,10 @@ def _format_leaderboard_value(leaderboard: str, value: int) -> str:
 
 class StatsCog(commands.Cog):
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: CatastrophiaBot):
         self._bot = bot
 
-        self._user_service = UserService()
-        self._stats_service = StatsService()
-        self._stats_service.set_services(user_service=self._user_service)
-
     async def cog_load(self):
-        self._stats_service.set_session(self._bot.session)
-        self._user_service.set_session(self._bot.session)
-
-        self._user_service.set_pool(self._bot.pool)
-        self._stats_service.set_pool(self._bot.pool)
-
         self.show_top_playtimes.start()
         self.update_game_stats.start()
         self.record_game_stats.start()
@@ -100,11 +89,11 @@ class StatsCog(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def record_game_stats(self):
-        await self._stats_service.record_game_stats()
+        await self._bot.stats_service.record_game_stats()
 
     @tasks.loop(minutes=15)
     async def update_game_stats(self):
-        game_stats = await self._stats_service.get_game_stats()
+        game_stats = await self._bot.stats_service.get_game_stats()
         if not game_stats:
             return
 
@@ -142,7 +131,7 @@ class StatsCog(commands.Cog):
 
         await top_players_channel.purge()
 
-        top_times: list[tuple] = await self._stats_service.get_top_playtimes()
+        top_times: list[tuple] = await self._bot.stats_service.get_top_playtimes()
         entries_per_block = 20
         for i in range(0, len(top_times), entries_per_block):
             batch = top_times[i : i + entries_per_block]
@@ -200,7 +189,7 @@ class StatsCog(commands.Cog):
             return
 
         title_range_suffix = _range_suffix(month=month, year=year)
-        user = await self._user_service.get_user(username)
+        user = await self._bot.user_service.get_user(username)
         if not user:
             await interaction.followup.send(
                 embed=Embed(
@@ -212,7 +201,7 @@ class StatsCog(commands.Cog):
             return
 
         title = f"{user.name}'s stats{title_range_suffix}"
-        stats = await self._stats_service.get_player_stats(
+        stats = await self._bot.stats_service.get_player_stats(
             user.id, month=month, year=year
         )
         if not stats:
@@ -246,7 +235,7 @@ class StatsCog(commands.Cog):
         stats_txt = stats_txt[:-1]  # rm \n
 
         embed = Embed(title=title, color=Color.green(), description=stats_txt)
-        thumbnail_url = await self._user_service.get_user_thumbnail_url(user)
+        thumbnail_url = await self._bot.user_service.get_user_thumbnail_url(user)
         embed.set_thumbnail(url=thumbnail_url)
         await interaction.followup.send(embed=embed)
 
@@ -276,7 +265,7 @@ class StatsCog(commands.Cog):
             leaderboard, "Invalid leaderboard"
         )
         title = f"Most {leaderboard_full_name.lower()}{title_range_suffix}"
-        top10 = await self._stats_service.get_top_leaderboard(
+        top10 = await self._bot.stats_service.get_top_leaderboard(
             leaderboard, month=month, year=year
         )
         if not top10:
@@ -309,7 +298,9 @@ class StatsCog(commands.Cog):
     ):
         ephemeral = True
         await interaction.response.defer(ephemeral=ephemeral)
-        ok = await self._stats_service.transfer_stats(source_username, target_username)
+        ok = await self._bot.stats_service.transfer_stats(
+            source_username, target_username
+        )
         if ok:
             embed = Embed(
                 title="Transferring stats was successful", color=Color.green()

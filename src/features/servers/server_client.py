@@ -10,8 +10,8 @@ _logger = logging.getLogger(__name__)
 
 class ServerClient(BaseClient):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, session: aiohttp.ClientSession):
+        super().__init__(session)
 
     async def send_server_access_msg(
         self, server_code: int, state: ServerStateMSG

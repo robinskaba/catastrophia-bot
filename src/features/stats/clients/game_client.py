@@ -10,8 +10,8 @@ _logger = logging.getLogger(__name__)
 
 class GameClient(BaseClient):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, session: aiohttp.ClientSession):
+        super().__init__(session)
 
         self._games_endpoint = "https://games.roblox.com/v1/games"
 

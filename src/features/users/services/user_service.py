@@ -14,27 +14,13 @@ from src.features.users.clients.user_client import UserClient
 
 
 class UserService:
-    _instance = None
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        self._pool = None
-
-        self._user_client = UserClient()
-        self._restrictions_client = RestrictionsClient()
-        self._spender_client = SpenderClient()
-
-    def set_session(self, session: aiohttp.ClientSession):
-        self._user_client.set_session(session)
-        self._restrictions_client.set_session(session)
-        self._spender_client.set_session(session)
-
-    def set_pool(self, pool: asyncpg.Pool):
+    def __init__(self, session: aiohttp.ClientSession, pool: asyncpg.Pool):
         self._pool = pool
+
+        self._user_client = UserClient(session)
+        self._restrictions_client = RestrictionsClient(session)
+        self._spender_client = SpenderClient(session)
 
     async def get_user(self, username: str) -> User | None:
         present_user = await self._user_client.get_user_from_username(username)

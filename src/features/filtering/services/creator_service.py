@@ -10,10 +10,7 @@ _logger = logging.getLogger(__name__)
 
 class CreatorService:
 
-    def __init__(self):
-        self._pool = None
-
-    def set_pool(self, pool: asyncpg.Pool):
+    def __init__(self, pool: asyncpg.Pool):
         self._pool = pool
 
     async def get_or_create(self, discord_id: int) -> models.Creator:

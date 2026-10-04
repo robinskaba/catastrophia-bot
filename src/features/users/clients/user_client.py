@@ -7,8 +7,8 @@ from src.features.users.model.user import User
 
 class UserClient(BaseClient):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, session: aiohttp.ClientSession):
+        super().__init__(session)
 
         self._users_endpoint = self.base_endpoint + "/users"
 

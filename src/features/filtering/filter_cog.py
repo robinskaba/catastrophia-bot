@@ -4,7 +4,7 @@ import re
 from discord import Member, Message, Object, datetime
 from discord.ext import commands, tasks
 from src.common.config.config import Config, Env
-from src.features.filtering.services.creator_service import CreatorService
+from src.common.bot import CatastrophiaBot
 
 MEDIA_EXTENSIONS = (
     ".gif",
@@ -23,9 +23,8 @@ _logger = logging.getLogger(__name__)
 
 class FilterCog(commands.Cog):
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: CatastrophiaBot):
         self._bot = bot
-        self._creator_service = CreatorService()
         self._youtube_regex = re.compile(
             r"(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.+"
         )
@@ -36,7 +35,6 @@ class FilterCog(commands.Cog):
 
     async def cog_load(self):
         self.check_inactive_creators.start()
-        self._creator_service.set_pool(self._bot.pool)
 
     async def cog_unload(self):
         self.check_inactive_creators.cancel()
@@ -68,7 +66,7 @@ class FilterCog(commands.Cog):
                 active_members.add(msg.author.id)
 
         for member in role.members:
-            creator = await self._creator_service.get_or_create(member.id)
+            creator = await self._bot.creator_service.get_or_create(member.id)
             role_given = datetime.fromtimestamp(creator.since, tz=timezone.utc)
             if now_utc - role_given < timedelta(
                 days=Config.CONTENT_CREATOR_INACTIVITY_MAX

@@ -9,8 +9,8 @@ _logger = logging.getLogger(__name__)
 
 class LeaderboardsClient(ExperienceClient):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, session: aiohttp.ClientSession):
+        super().__init__(session)
 
         self._individual_leaderboard_endpoint = f"{self.base_endpoint}/data-stores/{Config.LEADERBOARDS_DATASTORE_NAME}/entries"
         self._leaderboards_top10_endpoint = f"{self.base_endpoint}/data-stores/{Config.LEADERBOARDS_TOP10_DATASTORE_NAME}/entries"

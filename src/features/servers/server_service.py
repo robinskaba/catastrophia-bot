@@ -25,15 +25,9 @@ local_tz = ZoneInfo(Config.TIMEZONE)
 
 class ServerService:
 
-    def __init__(self):
-        self._pool = None
-        self._server_client = ServerClient()
-
-    def set_session(self, session: aiohttp.ClientSession):
-        self._server_client.set_session(session)
-
-    def set_pool(self, pool: asyncpg.Pool):
+    def __init__(self, session: aiohttp.ClientSession, pool: asyncpg.Pool):
         self._pool = pool
+        self._server_client = ServerClient(session)
 
     async def start_tournament(self, server_code: int) -> bool:
         # mark started tournament as scheduled

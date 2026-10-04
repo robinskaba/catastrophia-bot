@@ -10,8 +10,8 @@ _logger = logging.getLogger(__name__)
 
 class RestrictionsClient(ExperienceClient):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, session: aiohttp.ClientSession):
+        super().__init__(session)
 
         self._user_restriction_endpoint = f"{self.base_endpoint}/user-restrictions"
 

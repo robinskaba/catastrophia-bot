@@ -9,8 +9,8 @@ _logger = logging.getLogger(__name__)
 
 class SpenderClient(ExperienceClient):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, session: aiohttp.ClientSession):
+        super().__init__(session)
 
         self._spender_endpoint = f"{self.base_endpoint}/ordered-data-stores/{Config.SPENDERS_DATASTORE_NAME}/scopes/global/entries"
 

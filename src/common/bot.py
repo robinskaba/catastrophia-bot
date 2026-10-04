@@ -47,6 +47,17 @@ class CatastrophiaBot(commands.Bot):
             schema = file.read()
         await self.pool.execute(schema)
 
+        # initialize services
+        from src.features.users.services.user_service import UserService
+        from src.features.stats.services.stats_service import StatsService
+        from src.features.servers.server_service import ServerService
+        from src.features.filtering.services.creator_service import CreatorService
+
+        self.user_service = UserService(session=self.session, pool=self.pool)
+        self.stats_service = StatsService(session=self.session, pool=self.pool, user_service=self.user_service)
+        self.server_service = ServerService(session=self.session, pool=self.pool)
+        self.creator_service = CreatorService(pool=self.pool)
+
         # load cogs
         for feature_folder in os.listdir(_FEATURES_PATH):
             feature_dir = os.path.join(_FEATURES_PATH, feature_folder)
