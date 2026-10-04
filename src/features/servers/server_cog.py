@@ -1,5 +1,4 @@
 import logging
-from asyncio import tasks
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -10,7 +9,7 @@ from discord import (
     Object,
     app_commands,
 )
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from src.common.bot import CatastrophiaBot
 from src.common.config.config import Config
