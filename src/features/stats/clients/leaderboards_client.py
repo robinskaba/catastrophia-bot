@@ -101,4 +101,5 @@ class LeaderboardsClient(ExperienceClient):
                 data = await response.json()
         except aiohttp.ClientError as _:
             return None
+
         return data["value"]

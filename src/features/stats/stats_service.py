@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import UTC, datetime
 
@@ -6,6 +7,10 @@ import asyncpg
 
 from src.common.db.command_usage import get_searched_stats_usernames_by_discord_id
 from src.common.db.game_stats import create_game_stats_record, get_latest_game_stats
+from src.common.db.leaderboards_cache import (
+    get_leaderboards_cache,
+    upsert_leaderboards_cache,
+)
 from src.common.db.models import GameStat
 from src.features.stats.clients.game_client import GameClient
 from src.features.stats.clients.leaderboards_client import LeaderboardsClient
@@ -87,11 +92,31 @@ class StatsService:
             else:
                 leaderboards = live_record["Monthly"]
         else:
-            leaderboards = await self._leaderboard_client.get_past_leaderboards_top10(
-                month=month, year=year
-            )
-            if not leaderboards:
-                return None
+            # try retrieving cached data
+            async with self._pool.acquire() as conn:
+                period = f"{month:02d}_{year}" if month else f"{year}"
+                _logger.debug(
+                    f"retrieving leaderboards for period {period} from cache.."
+                )
+                leaderboards_cache = await get_leaderboards_cache(conn, period=period)
+                if (
+                    not leaderboards_cache
+                    or (current_date - leaderboards_cache.refreshed_at).days > 30
+                ):
+                    # fetch latest data
+                    leaderboards = (
+                        await self._leaderboard_client.get_past_leaderboards_top10(
+                            month=month, year=year
+                        )
+                    )
+                    if not leaderboards:
+                        return None  # non-existent period
+                    await upsert_leaderboards_cache(
+                        conn, period=period, leaderboard_data=json.dumps(leaderboards)
+                    )
+                    _logger.debug(f"cached leaderboards for period {period}")
+                else:
+                    leaderboards = json.loads(leaderboards_cache.leaderboard_data)
 
         leaderboard = leaderboards[leaderboard_key]
         results = []
