@@ -1,6 +1,8 @@
-from argparse import ArgumentError
 import logging
+from argparse import ArgumentError
+
 import aiohttp
+
 from src.common.config.config import Config, Env
 from src.features.users.clients.experience_client import ExperienceClient
 

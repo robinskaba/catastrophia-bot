@@ -1,7 +1,7 @@
 import aiohttp
 
-from src.features.users.model.roblox_user import RobloxUser
 from src.common.http.base_client import BaseClient
+from src.features.users.model.roblox_user import RobloxUser
 from src.features.users.model.user import User
 
 

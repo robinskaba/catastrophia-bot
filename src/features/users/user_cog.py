@@ -8,8 +8,8 @@ from discord import (
     User,
     app_commands,
 )
-from discord.ext import commands
 from discord.app_commands import Choice
+from discord.ext import commands
 
 from src.common.bot import CatastrophiaBot
 

@@ -1,9 +1,9 @@
-from ast import Return
-from datetime import UTC, datetime
 import logging
+from datetime import UTC, datetime
 
 import aiohttp
 import asyncpg
+
 from src.common.db.command_usage import get_searched_stats_usernames_by_discord_id
 from src.common.db.game_stats import create_game_stats_record, get_latest_game_stats
 from src.common.db.models import GameStat

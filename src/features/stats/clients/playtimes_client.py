@@ -1,8 +1,6 @@
 import logging
 
 import aiohttp
-from discord import user
-from requests import head
 
 from src.common.config.config import Config, Env
 from src.features.users.clients.experience_client import ExperienceClient

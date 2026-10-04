@@ -2,8 +2,9 @@ import logging
 
 import aiohttp
 from discord import datetime
-from src.features.users.model.restriction import Restriction
+
 from src.features.users.clients.experience_client import ExperienceClient
+from src.features.users.model.restriction import Restriction
 
 _logger = logging.getLogger(__name__)
 

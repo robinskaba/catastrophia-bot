@@ -1,0 +1,4 @@
+extend-exclude = ["src/common/db"]
+
+[lint]
+select = ["F401", "I"]

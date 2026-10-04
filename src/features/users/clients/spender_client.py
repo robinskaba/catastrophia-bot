@@ -1,6 +1,7 @@
 import logging
 
 import aiohttp
+
 from src.common.config.config import Config
 from src.features.users.clients.experience_client import ExperienceClient
 

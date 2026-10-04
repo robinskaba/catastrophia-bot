@@ -1,8 +1,8 @@
 import logging
 
 import aiohttp
+
 from src.common.config.config import Env
-from src.common.db import models
 from src.common.http.base_client import BaseClient
 
 _logger = logging.getLogger(__name__)

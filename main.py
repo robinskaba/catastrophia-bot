@@ -1,4 +1,5 @@
 import logging
+
 from src.common.bot import CatastrophiaBot
 from src.common.config.config import Env
 from src.common.config.logging_filters import apply_logging_filters

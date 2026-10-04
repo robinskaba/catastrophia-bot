@@ -2,15 +2,14 @@ from datetime import datetime
 
 import aiohttp
 import asyncpg
-from discord import user
 
 from src.common.db.username_cache import get_cached_username, upsert_username
 from src.features.users.clients.restrictions_client import RestrictionsClient
 from src.features.users.clients.spender_client import SpenderClient
+from src.features.users.clients.user_client import UserClient
 from src.features.users.model.restriction import Restriction
 from src.features.users.model.roblox_user import RobloxUser
 from src.features.users.model.user import User
-from src.features.users.clients.user_client import UserClient
 
 
 class UserService:

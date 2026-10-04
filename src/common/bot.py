@@ -1,12 +1,13 @@
 import json
 import logging
 import os
+
 import aiohttp
-from aiohttp.connector import ClientConnectorError
 import asyncpg
 import discord
+from aiohttp.connector import ClientConnectorError
+from discord import Intents, Interaction
 from discord.ext import commands
-from discord import Intents, Interaction, Member, TextChannel
 
 from src.common.config.config import Env
 from src.common.db.command_usage import add_command_usage
@@ -48,10 +49,10 @@ class CatastrophiaBot(commands.Bot):
         await self.pool.execute(schema)
 
         # initialize services
-        from src.features.users.user_service import UserService
-        from src.features.stats.stats_service import StatsService
-        from src.features.servers.server_service import ServerService
         from src.features.filtering.creator_service import CreatorService
+        from src.features.servers.server_service import ServerService
+        from src.features.stats.stats_service import StatsService
+        from src.features.users.user_service import UserService
 
         self.user_service = UserService(session=self.session, pool=self.pool)
         self.stats_service = StatsService(

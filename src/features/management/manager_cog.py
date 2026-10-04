@@ -1,8 +1,9 @@
 import asyncio
-from datetime import datetime, timedelta
 import logging
-from discord import Interaction, Member, Object, TextChannel, User, app_commands
+from datetime import timedelta
+
 import discord
+from discord import Interaction, Member, Object, TextChannel, User, app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 

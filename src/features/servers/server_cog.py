@@ -1,8 +1,8 @@
+import logging
 from asyncio import tasks
 from datetime import datetime
-import logging
-from threading import local
 from zoneinfo import ZoneInfo
+
 from discord import (
     Color,
     Embed,
@@ -10,9 +10,10 @@ from discord import (
     Object,
     app_commands,
 )
-from discord.ext import commands, tasks
-from src.common.config.config import Config
+from discord.ext import commands
+
 from src.common.bot import CatastrophiaBot
+from src.common.config.config import Config
 
 _logger = logging.getLogger(__name__)
 
@@ -116,7 +117,7 @@ class ServerCog(commands.Cog):
     )
     @app_commands.describe(
         server="Server name abbreviation",
-        when=f"Format: DD.MM. HH:MM",
+        when="Format: DD.MM. HH:MM",
     )
     async def schedule_tournament(
         self,
@@ -148,7 +149,7 @@ class ServerCog(commands.Cog):
         title = (
             f"{server_name} tournament scheduled at {when}"
             if success
-            else f"Failed to schedule the tournament."
+            else "Failed to schedule the tournament."
         )
         embed = Embed(title=title, color=Color.green() if success else Color.red())
         await interaction.followup.send(embed=embed, ephemeral=ephemeral)

@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta, timezone
 import logging
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import aiohttp
 import asyncpg
-from nacl.exceptions import ensure
 
 from src.common.config.config import Config
 from src.common.db import models
