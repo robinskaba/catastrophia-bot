@@ -98,12 +98,22 @@ class StatsService:
         monthly_data.pop(
             "06_2026", None
         )  # when leaderboards released, makes graphs look bad
-        months_sorted = sorted(
-            monthly_data.keys(), key=lambda x: (x.split("_")[1], x.split("_")[0])
-        )
-        for month in months_sorted:
-            graph_months.append(month)
-            graph_values.append(monthly_data.get(month, {}).get(stat_key, 0))
+
+        current_date = datetime.now(tz=UTC)
+        current_year, current_month = current_date.year, current_date.month
+
+        # normalize monthly data to include data from 07_2026 all the way to the current date
+        y, m = 2026, 7
+        while y < current_year or (y == current_year and m <= current_month):
+            month_str = f"{m:02d}_{y}"
+            graph_months.append(month_str)
+            graph_values.append(monthly_data.get(month_str, {}).get(stat_key, 0))
+
+            m += 1
+            if m > 12:
+                m = 1
+                y += 1
+
         return graph_months, graph_values
 
     async def get_top_playtimes(self) -> list[tuple]:
