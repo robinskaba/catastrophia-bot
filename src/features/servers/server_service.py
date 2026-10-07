@@ -135,7 +135,7 @@ class ServerService:
         if not msgs_success:
             return False
         ms_success = await self._server_client.save_server_access_to_memory_store(
-            server_code, ServerStateMS.TOURNAMENT
+            server_code, ServerStateMS.TOURNAMENT, 24 * 60 * 60
         )
         return ms_success
 
@@ -146,7 +146,7 @@ class ServerService:
         if not msgs_success:
             return False
         ms_success = await self._server_client.save_server_access_to_memory_store(
-            server_code, ServerStateMS.RECHARING
+            server_code, ServerStateMS.RECHARING, 2 * 60
         )
         return ms_success
 

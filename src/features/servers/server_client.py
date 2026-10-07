@@ -35,14 +35,14 @@ class ServerClient(BaseClient):
         return True
 
     async def save_server_access_to_memory_store(
-        self, server_code: int, state: ServerStateMS
+        self, server_code: int, state: ServerStateMS, expiry_in_seconds: int
     ) -> bool:
         endpoint = f"https://apis.roblox.com/cloud/v2/universes/{Env.UNIVERSE_ID}/memory-store/sorted-maps/{Config.SERVER_STATE_MEMORY_STORE}/items/{server_code}"
 
         params = {
             "allowMissing": "true"
         }  # upsert -> converts to POST request if missing
-        payload = {"value": state.value, "ttl": f"{24 * 60 * 60}s"}
+        payload = {"value": state.value, "ttl": f"{expiry_in_seconds}s"}
 
         try:
             # 3. Change .post() to .patch()
