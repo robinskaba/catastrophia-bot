@@ -60,6 +60,24 @@ class ServerCog(commands.Cog):
     async def handle_scheduled_tournaments(self):
         await self._bot.server_service.handle_scheduled_tournaments()
 
+    @app_commands.command(name="recharge", description="Recharges a server.")
+    async def recharge_server(self, interaction: Interaction, server: str):
+        ephemeral = True
+        await interaction.response.defer(ephemeral=ephemeral)
+        server_name = _shortcut_to_server_name(server)
+        code = _get_server_code(server_name)
+        if not code:
+            await interaction.followup.send(
+                content="Unknown server", ephemeral=ephemeral
+            )
+            return
+        success = await self._bot.server_service.recharge_server(code)
+        embed = Embed(
+            title=f"Recharging {server_name}" if success else "Failed to recharge",
+            color=Color.green() if success else Color.red(),
+        )
+        await interaction.followup.send(embed=embed)
+
     @app_commands.command(
         name="start-tournament", description="Opens the server for a tournament."
     )

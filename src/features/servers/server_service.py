@@ -128,6 +128,15 @@ class ServerService:
                 )
                 await self._mark_tournament(tournament.id, 2)
 
+    async def recharge_server(self, server_code: int) -> bool:
+        return await self._server_client.send_server_access_msg(
+            server_code=server_code, state=ServerStateMSG.RECHARGING
+        ) and await self._server_client.save_server_access_to_memory_store(
+            server_code=server_code,
+            state=ServerStateMS.RECHARING,
+            expiry_in_seconds=2 * 60,
+        )
+
     async def _open_server_for_tournament(self, server_code: int) -> bool:
         msgs_success = await self._server_client.send_server_access_msg(
             server_code, ServerStateMSG.TOURNAMENT
