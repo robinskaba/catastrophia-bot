@@ -44,6 +44,7 @@ class CatastrophiaBot(commands.Bot):
     async def setup_hook(self):
         # create aiohttp session
         self.session = aiohttp.ClientSession()
+        _logger.info("aiohttp session established")
 
         # connect to database
         dsn = f"postgres://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('POSTGRES_DB')}"
@@ -51,6 +52,7 @@ class CatastrophiaBot(commands.Bot):
         with open(_SCHEMA_PATH, "r", encoding="utf-8") as file:
             schema = file.read()
         await self.pool.execute(schema)
+        _logger.info("database connected")
 
         # initliaze services
         self.user_service = UserService(session=self.session, pool=self.pool)
@@ -59,6 +61,7 @@ class CatastrophiaBot(commands.Bot):
         )
         self.server_service = ServerService(session=self.session, pool=self.pool)
         self.creator_service = CreatorService(pool=self.pool)
+        _logger.info("services initialized")
 
         # load cogs
         for feature_folder in os.listdir(_FEATURES_PATH):
