@@ -31,7 +31,6 @@ def _is_owner(member: Member) -> bool:
 
 with open("assets/leaderboards.json", "r") as read:
     _data = json.load(read)
-    _LEADERBOARD_NAME_ORDER = [item["id"] for item in _data]
     _LEADERBOARD_FULL_NAMES = {item["id"]: item["name"] for item in _data}
     _LEADERBOARD_COLORS = {item["id"]: item.get("color", "#5865F2") for item in _data}
 
@@ -50,10 +49,21 @@ _MONTHS_CHOICES = [
     Choice(name="December", value=12),
 ]
 
-_LEADERBOARD_CHOICES = [
-    Choice(name=_LEADERBOARD_FULL_NAMES[key], value=key)
-    for key in _LEADERBOARD_NAME_ORDER
-]
+
+async def _leaderboard_autocomplete(
+    interaction: Interaction, current: str
+) -> list[Choice[str]]:
+    allowed = Config.PUBLIC_LEADERBOARDS.copy()
+    if _is_owner(interaction.user):
+        allowed.extend(Config.PRIVATE_LEADERBOARDS)
+
+    choices_list = []
+    for key in allowed:
+        name = _LEADERBOARD_FULL_NAMES.get(key, key)
+        if current.lower() in name.lower() or current.lower() in key.lower():
+            choices_list.append(Choice(name=name, value=key))
+
+    return choices_list[:25]
 
 
 async def _year_choices(interaction: Interaction, current: int) -> list[Choice[int]]:
@@ -227,7 +237,7 @@ class StatsCog(commands.Cog):
             return
 
         stats_txt = ""
-        for leaderboard_key in _LEADERBOARD_NAME_ORDER:
+        for leaderboard_key in Config.PUBLIC_LEADERBOARDS:
             value = stats.get(leaderboard_key)
             value = (
                 value if value else 0
@@ -252,14 +262,88 @@ class StatsCog(commands.Cog):
         await interaction.followup.send(embed=embed)
 
     @command(
+        name="private-stats",
+        description="Shows the player's private statistics (owner only).",
+    )
+    @describe(
+        username="Whose stats to display (case insensitive).",
+        year="Unspecified year or month means all time statistics.",
+    )
+    @choices(month=_MONTHS_CHOICES)
+    @autocomplete(year=_year_choices)
+    @app_commands.default_permissions(administrator=True)
+    async def private_stats(
+        self,
+        interaction: Interaction,
+        username: str,
+        year: int | None,
+        month: int | None,
+    ) -> None:
+        if not _is_owner(interaction.user):
+            await interaction.response.send_message(
+                "You don't have permission to view private stats.", ephemeral=True
+            )
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        if month and not year:
+            year = datetime.now(tz=UTC).year
+
+        title_range_suffix = _range_suffix(month=month, year=year)
+        user = await self._bot.user_service.get_user(username)
+        if not user:
+            await interaction.followup.send(
+                embed=Embed(
+                    title=f"{username}'s private stats{title_range_suffix}",
+                    description="This player does not exist.",
+                    color=Color.red(),
+                ),
+                ephemeral=True,
+            )
+            return
+
+        title = f"{user.name}'s private stats{title_range_suffix}"
+        stats = await self._bot.stats_service.get_player_stats_for_period(
+            user.id, month=month, year=year
+        )
+        if not stats:
+            await interaction.followup.send(
+                embed=Embed(
+                    title=title,
+                    description="There are no stats for this period.",
+                    color=Color.red(),
+                ),
+                ephemeral=True,
+            )
+            return
+
+        stats_txt = ""
+        for leaderboard_key in Config.PRIVATE_LEADERBOARDS:
+            value = stats.get(leaderboard_key)
+            value = value if value else 0
+            full_name = _LEADERBOARD_FULL_NAMES.get(leaderboard_key)
+            full_name = full_name if full_name else leaderboard_key
+
+            stat_txt = f"**{full_name}**: "
+            stat_txt += f"{value:,}".replace(",", " ")
+            stats_txt += stat_txt + "\n"
+        stats_txt = stats_txt[:-1]
+
+        embed = Embed(title=title, color=Color.green(), description=stats_txt)
+        thumbnail_url = await self._bot.user_service.get_user_thumbnail_url(user)
+        embed.set_thumbnail(url=thumbnail_url)
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @command(
         name="leaderboards", description="Shows the top 10 players on a leaderboard."
     )
     @describe(
         leaderboard="What leaderboard to display.",
         year="Unspecified year or month means all time leaderboard.",
     )
-    @choices(leaderboard=_LEADERBOARD_CHOICES, month=_MONTHS_CHOICES)
-    @autocomplete(year=_year_choices)
+    @choices(month=_MONTHS_CHOICES)
+    @autocomplete(leaderboard=_leaderboard_autocomplete, year=_year_choices)
     async def leaderboards(
         self,
         interaction: Interaction,
@@ -267,7 +351,23 @@ class StatsCog(commands.Cog):
         year: int | None,
         month: int | None,
     ):
-        await interaction.response.defer()
+        ephemeral = leaderboard in Config.PRIVATE_LEADERBOARDS
+        await interaction.response.defer(ephemeral=ephemeral)
+
+        allowed_leaderboards = (
+            Config.PUBLIC_LEADERBOARDS + Config.PRIVATE_LEADERBOARDS
+            if _is_owner(interaction.user)
+            else Config.PUBLIC_LEADERBOARDS
+        )
+        if leaderboard not in allowed_leaderboards:
+            await interaction.followup.send(
+                embed=Embed(
+                    title="Invalid leaderboard",
+                    description="This leaderboard does not exist or you don't have permission to view it.",
+                    color=Color.red(),
+                )
+            )
+            return
 
         if month and not year:
             year = datetime.now(tz=UTC).year
@@ -302,7 +402,7 @@ class StatsCog(commands.Cog):
         discord_color = Color.from_str(hex_color)
 
         embed = Embed(title=title, description=leaderboard_txt, color=discord_color)
-        await interaction.followup.send(embed=embed)
+        await interaction.followup.send(embed=embed, ephemeral=ephemeral)
 
     @app_commands.command(
         name="transfer-stats",
@@ -330,7 +430,7 @@ class StatsCog(commands.Cog):
 
     @command(name="graphs", description="Shows a graph of player's stats.")
     @rename(stat_key="stat")
-    @choices(stat_key=_LEADERBOARD_CHOICES)
+    @autocomplete(stat_key=_leaderboard_autocomplete)
     @describe(
         username="Whose stats to display (case insensitive).",
         stat_key="Stats to graph",
@@ -338,7 +438,23 @@ class StatsCog(commands.Cog):
     async def graphs(
         self, interaction: Interaction, username: str, stat_key: str
     ) -> None:
-        await interaction.response.defer()
+        ephemeral = stat_key in Config.PRIVATE_LEADERBOARDS
+        await interaction.response.defer(ephemeral=ephemeral)
+
+        allowed_leaderboards = (
+            Config.PUBLIC_LEADERBOARDS + Config.PRIVATE_LEADERBOARDS
+            if _is_owner(interaction.user)
+            else Config.PUBLIC_LEADERBOARDS
+        )
+        if stat_key not in allowed_leaderboards:
+            await interaction.followup.send(
+                embed=Embed(
+                    title="Invalid stat",
+                    description="This stat does not exist or you don't have permission to view it.",
+                    color=Color.red(),
+                )
+            )
+            return
 
         if _is_confidential(username) and not _is_owner(interaction.user):
             await interaction.followup.send("This is confidential.")
@@ -363,7 +479,9 @@ class StatsCog(commands.Cog):
         if not graph_data:
             await interaction.followup.send(
                 embed=Embed(
-                    title=title, description="No statistics found.", color=Color.red()
+                    title=title,
+                    description="No statistics found.",
+                    color=Color.red(),
                 )
             )
             return
@@ -397,7 +515,9 @@ class StatsCog(commands.Cog):
         embed = Embed(color=discord_color)
         embed.set_image(url="attachment://graph.png")
 
-        await interaction.followup.send(file=graph_file, embed=embed)
+        await interaction.followup.send(
+            file=graph_file, embed=embed, ephemeral=ephemeral
+        )
 
 
 async def setup(bot: commands.Bot) -> None:

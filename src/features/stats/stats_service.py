@@ -133,50 +133,46 @@ class StatsService:
     ) -> list[tuple] | None:
         leaderboards = {}
 
-        # leaderboards data is in the common record
         current_date = datetime.now(tz=UTC)
-        if (not month and not year) or (
-            (
-                month
-                and year
-                and month == current_date.month
-                and year == current_date.year
-            )
-            or (not month and year and year == current_date.year)
-        ):
+        is_all_time = not month and not year
+        is_current_period = (
+            month and year and month == current_date.month and year == current_date.year
+        ) or (not month and year and year == current_date.year)
+
+        if is_current_period or is_all_time:
             live_record = await self._leaderboard_client.get_live_leaderboards_top10()
             if not live_record:
                 return None
-            if not month and not year:
+            if is_all_time:
                 leaderboards = live_record["AllTime"]
             elif not month and year:
                 leaderboards = live_record["Yearly"]
             else:
                 leaderboards = live_record["Monthly"]
         else:
-            # try retrieving cached data
             async with self._pool.acquire() as conn:
                 period = f"{month:02d}_{year}" if month else f"{year}"
+
                 leaderboards_cache = await get_leaderboards_cache(conn, period=period)
                 if (
                     not leaderboards_cache
                     or (current_date - leaderboards_cache.refreshed_at).days > 30
                 ):
-                    # fetch latest data
                     leaderboards = (
                         await self._leaderboard_client.get_past_leaderboards_top10(
                             month=month, year=year
                         )
                     )
                     if not leaderboards:
-                        return None  # non-existent period
+                        return None
+
                     await upsert_leaderboards_cache(
                         conn, period=period, leaderboard_data=json.dumps(leaderboards)
                     )
                 else:
                     leaderboards = json.loads(leaderboards_cache.leaderboard_data)
 
-        leaderboard = leaderboards[leaderboard_key]
+        leaderboard = leaderboards.get(leaderboard_key, [])
         results = []
         for entry in leaderboard:
             user_id, value = entry["UserId"], entry["Count"]

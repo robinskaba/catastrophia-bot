@@ -73,5 +73,10 @@
         "id": "GhostsKilled",
         "name": "Ghosts killed",
         "color": "#00ffff"
+    },
+    {
+        "id": "RobuxSpent",
+        "name": "Robux spent",
+        "color": "#00ff00"
     }
 ]
