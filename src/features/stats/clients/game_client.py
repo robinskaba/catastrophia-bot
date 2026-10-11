@@ -25,6 +25,9 @@ class GameClient(BaseClient):
             _logger.error(f"problem fetching game stats: {e}")
             return None
 
-        game_stats = data["data"][0]
+        game_stats = data.get("data")
+        if not game_stats:
+            return None
+        game_stats = game_stats[0]  # queried only one game
         playing, visits = game_stats["playing"], game_stats["visits"]
         return playing, visits
