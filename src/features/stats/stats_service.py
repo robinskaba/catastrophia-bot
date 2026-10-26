@@ -1,6 +1,8 @@
+import dataclasses
 import json
 import logging
-from datetime import UTC, datetime
+import math
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import aiohttp
@@ -8,7 +10,14 @@ import asyncpg
 
 from src.common.config.config import Config
 from src.common.db.command_usage import get_searched_stats_usernames_by_discord_id
-from src.common.db.game_stats import create_game_stats_record, get_latest_game_stats
+from src.common.db.game_stats import (
+    create_game_stats_record,
+    get_first_game_stats,
+    get_latest_game_stats,
+    get_playing_history,
+    get_playing_low,
+    get_playing_peak,
+)
 from src.common.db.leaderboards_cache import (
     get_leaderboards_cache,
     upsert_leaderboards_cache,
@@ -29,6 +38,26 @@ _local_tz = ZoneInfo(Config.TIMEZONE)
 
 
 _PLAYER_STATS_CACHE_LIFETIME_SECONDS = 15 * 60
+
+# period -> (time span, bucket size in seconds), buckets keep graphs at ~150-250 points
+PLAYING_PERIODS: dict[str, tuple[timedelta, int]] = {
+    "24h": (timedelta(hours=24), 10 * 60),
+    "3d": (timedelta(days=3), 30 * 60),
+    "7d": (timedelta(days=7), 60 * 60),
+    "30d": (timedelta(days=30), 3 * 60 * 60),
+}
+PLAYING_ALL_TIME = "all"
+_ALL_TIME_TARGET_BUCKETS = 240
+
+
+@dataclasses.dataclass()
+class PlayingHistory:
+    times: list[datetime]
+    averages: list[float | None]
+    lows: list[int | None]
+    highs: list[int | None]
+    peak: GameStat
+    lowest: GameStat
 
 
 class StatsService:
@@ -193,6 +222,50 @@ class StatsService:
     async def get_game_stats(self) -> GameStat | None:
         async with self._pool.acquire() as conn:
             return await get_latest_game_stats(conn)
+
+    async def get_playing_history(self, period: str) -> PlayingHistory | None:
+        now = datetime.now(tz=UTC)
+
+        async with self._pool.acquire() as conn:
+            if period == PLAYING_ALL_TIME:
+                first = await get_first_game_stats(conn)
+                if not first:
+                    return None
+                since = first.recorded_at
+                # buckets must divide a day evenly, otherwise the daily player
+                # cycle aliases into a fake zigzag
+                hours = (now - since).total_seconds() / 3600
+                bucket_hours = math.ceil(hours / _ALL_TIME_TARGET_BUCKETS)
+                if bucket_hours > 6:
+                    bucket_hours = math.ceil(bucket_hours / 24) * 24
+                else:
+                    bucket_hours = next(h for h in (1, 2, 3, 6) if h >= bucket_hours)
+                bucket_seconds = bucket_hours * 3600
+            else:
+                span, bucket_seconds = PLAYING_PERIODS[period]
+                since = now - span
+
+            rows = await get_playing_history(
+                conn, bucket_seconds=bucket_seconds, since=since
+            )
+            peak = await get_playing_peak(conn, recorded_at=since)
+            lowest = await get_playing_low(conn, recorded_at=since)
+        if not rows or not peak or not lowest:
+            return None
+
+        # fill missing buckets with None so downtime shows as a gap in the graph
+        by_bucket = {int(row.bucket.timestamp()): row for row in rows}
+        history = PlayingHistory([], [], [], [], peak=peak, lowest=lowest)
+        bucket = int(since.timestamp()) // bucket_seconds * bucket_seconds
+        while bucket <= now.timestamp():
+            row = by_bucket.get(bucket)
+            history.times.append(datetime.fromtimestamp(bucket, tz=UTC))
+            history.averages.append(row.avg_playing if row else None)
+            history.lows.append(row.min_playing if row else None)
+            history.highs.append(row.max_playing if row else None)
+            bucket += bucket_seconds
+
+        return history
 
     async def get_predicted_usernames_from_searches(
         self, discord_id: int

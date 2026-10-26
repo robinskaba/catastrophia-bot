@@ -2,6 +2,7 @@ import calendar
 import json
 import logging
 from datetime import UTC, datetime, timezone
+from zoneinfo import ZoneInfo
 
 from discord import Color, Embed, Interaction, Member, Object, app_commands
 from discord.app_commands import (
@@ -16,9 +17,11 @@ from discord.ext import commands, tasks
 
 from src.common.bot import CatastrophiaBot
 from src.common.config.config import Config
-from src.common.utils.graphing import create_line_graph
+from src.common.db.models import GameStat
+from src.common.utils.graphing import create_line_graph, create_range_graph
 
 _logger = logging.getLogger(__name__)
+_local_tz = ZoneInfo(Config.TIMEZONE)
 
 
 def _is_confidential(username: str) -> bool:
@@ -48,6 +51,15 @@ _MONTHS_CHOICES = [
     Choice(name="November", value=11),
     Choice(name="December", value=12),
 ]
+
+_PLAYING_PERIOD_CHOICES = [
+    Choice(name="Last 24 hours", value="24h"),
+    Choice(name="Last 3 days", value="3d"),
+    Choice(name="Last 7 days", value="7d"),
+    Choice(name="Last month", value="30d"),
+    Choice(name="All time", value="all"),
+]
+_PLAYING_PERIOD_NAMES = {c.value: c.name for c in _PLAYING_PERIOD_CHOICES}
 
 
 async def _leaderboard_autocomplete(
@@ -518,6 +530,53 @@ class StatsCog(commands.Cog):
         await interaction.followup.send(
             file=graph_file, embed=embed, ephemeral=ephemeral
         )
+
+    @command(
+        name="playing", description="Shows a graph of how many players were playing."
+    )
+    @describe(period="Time period to display (defaults to the last 24 hours).")
+    @choices(period=_PLAYING_PERIOD_CHOICES)
+    async def playing(self, interaction: Interaction, period: str = "24h") -> None:
+        await interaction.response.defer()
+
+        title = f"Playing players ({_PLAYING_PERIOD_NAMES[period].lower()})"
+        history = await self._bot.stats_service.get_playing_history(period)
+        if not history:
+            await interaction.followup.send(
+                embed=Embed(
+                    title=title,
+                    description="No player data recorded for this period.",
+                    color=Color.red(),
+                )
+            )
+            return
+
+        graph_file = await create_range_graph(
+            title=title,
+            times=history.times,
+            averages=history.averages,
+            lows=history.lows,
+            highs=history.highs,
+            tz=_local_tz,
+            y_axis_title="Players",
+            color="#ffffff",
+        )
+
+        def format_stat(stat: GameStat) -> str:
+            time = stat.recorded_at.astimezone(_local_tz)
+            return f"{stat.playing} players ({time.strftime('%a %d %b, %H:%M')})"
+
+        # footer is the only embed text rendered below the image
+        embed = Embed(color=Color.from_str("#ffffff"))
+        embed.set_image(url="attachment://graph.png")
+        embed.set_footer(
+            text=(
+                f"Highest: {format_stat(history.peak)}\n"
+                f"Lowest: {format_stat(history.lowest)}\n"
+            )
+        )
+
+        await interaction.followup.send(file=graph_file, embed=embed)
 
 
 async def setup(bot: commands.Bot) -> None:

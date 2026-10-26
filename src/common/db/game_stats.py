@@ -5,11 +5,18 @@
 from __future__ import annotations
 
 __all__: collections.abc.Sequence[str] = (
+    "GetPlayingHistoryRow",
+    "QueryResults",
     "create_game_stats_record",
+    "get_first_game_stats",
     "get_latest_game_stats",
+    "get_playing_history",
+    "get_playing_low",
+    "get_playing_peak",
 )
 
 import dataclasses
+import datetime
 import operator
 import typing
 
@@ -17,7 +24,6 @@ if typing.TYPE_CHECKING:
     import asyncpg
     import asyncpg.cursor
     import collections.abc
-    import datetime
 
     QueryResultsArgsType: typing.TypeAlias = int | float | str | memoryview | datetime.date | datetime.time | datetime.datetime | datetime.timedelta | None
 
@@ -26,11 +32,30 @@ if typing.TYPE_CHECKING:
 from src.common.db import models
 
 
+@dataclasses.dataclass()
+class GetPlayingHistoryRow:
+    bucket: datetime.datetime
+    min_playing: int
+    max_playing: int
+    avg_playing: float
+
+
 CREATE_GAME_STATS_RECORD: typing.Final[str] = """-- name: CreateGameStatsRecord :exec
 INSERT INTO
   game_stats (playing, visits)
 VALUES
   ($1, $2)
+"""
+
+GET_FIRST_GAME_STATS: typing.Final[str] = """-- name: GetFirstGameStats :one
+SELECT
+  id, playing, visits, recorded_at
+FROM
+  game_stats
+ORDER BY
+  recorded_at ASC
+LIMIT
+  1
 """
 
 GET_LATEST_GAME_STATS: typing.Final[str] = """-- name: GetLatestGameStats :one
@@ -44,13 +69,130 @@ LIMIT
   1
 """
 
+GET_PLAYING_HISTORY: typing.Final[str] = """-- name: GetPlayingHistory :many
+SELECT
+  to_timestamp(
+    (floor(extract(epoch FROM recorded_at))::bigint / $1::bigint) * $1::bigint
+  )::timestamptz AS bucket,
+  MIN(playing)::int AS min_playing,
+  MAX(playing)::int AS max_playing,
+  AVG(playing)::float AS avg_playing
+FROM
+  game_stats
+WHERE
+  recorded_at >= $2::timestamptz
+GROUP BY
+  1
+ORDER BY
+  1
+"""
+
+GET_PLAYING_LOW: typing.Final[str] = """-- name: GetPlayingLow :one
+SELECT
+  id, playing, visits, recorded_at
+FROM
+  game_stats
+WHERE
+  recorded_at >= $1
+ORDER BY
+  playing ASC,
+  recorded_at DESC
+LIMIT
+  1
+"""
+
+GET_PLAYING_PEAK: typing.Final[str] = """-- name: GetPlayingPeak :one
+SELECT
+  id, playing, visits, recorded_at
+FROM
+  game_stats
+WHERE
+  recorded_at >= $1
+ORDER BY
+  playing DESC,
+  recorded_at DESC
+LIMIT
+  1
+"""
+
+
+T = typing.TypeVar("T")
+
+
+class QueryResults(typing.Generic[T]):
+    __slots__ = ("_args", "_conn", "_cursor", "_decode_hook", "_iterator", "_sql")
+
+    def __init__(
+        self,
+        conn: ConnectionLike,
+        sql: str,
+        decode_hook: collections.abc.Callable[[asyncpg.Record], T],
+        *args: QueryResultsArgsType,
+    ) -> None:
+        self._conn = conn
+        self._sql = sql
+        self._decode_hook = decode_hook
+        self._args = args
+        self._cursor: asyncpg.cursor.CursorFactory[asyncpg.Record] | None = None
+        self._iterator: asyncpg.cursor.CursorIterator[asyncpg.Record] | None = None
+
+    def __aiter__(self) -> QueryResults[T]:
+        return self
+
+    def __await__(
+        self,
+    ) -> collections.abc.Generator[None, None, collections.abc.Sequence[T]]:
+        async def _wrapper() -> collections.abc.Sequence[T]:
+            result = await self._conn.fetch(self._sql, *self._args)
+            return [self._decode_hook(row) for row in result]
+        return _wrapper().__await__()
+
+    async def __anext__(self) -> T:
+        if self._cursor is None or self._iterator is None:
+            self._cursor = self._conn.cursor(self._sql, *self._args)
+            self._iterator = self._cursor.__aiter__()
+        try:
+            record = await self._iterator.__anext__()
+        except StopAsyncIteration:
+            self._cursor = None
+            self._iterator = None
+            raise
+        return self._decode_hook(record)
+
 
 async def create_game_stats_record(conn: ConnectionLike, *, playing: int, visits: int) -> None:
     await conn.execute(CREATE_GAME_STATS_RECORD, playing, visits)
 
 
+async def get_first_game_stats(conn: ConnectionLike) -> models.GameStat | None:
+    row = await conn.fetchrow(GET_FIRST_GAME_STATS)
+    if row is None:
+        return None
+    return models.GameStat(id=row[0], playing=row[1], visits=row[2], recorded_at=row[3])
+
+
 async def get_latest_game_stats(conn: ConnectionLike) -> models.GameStat | None:
     row = await conn.fetchrow(GET_LATEST_GAME_STATS)
+    if row is None:
+        return None
+    return models.GameStat(id=row[0], playing=row[1], visits=row[2], recorded_at=row[3])
+
+
+def get_playing_history(conn: ConnectionLike, *, bucket_seconds: int, since: datetime.datetime) -> QueryResults[GetPlayingHistoryRow]:
+    def _decode_hook(row: asyncpg.Record) -> GetPlayingHistoryRow:
+        return GetPlayingHistoryRow(bucket=row[0], min_playing=row[1], max_playing=row[2], avg_playing=row[3])
+    return QueryResults[GetPlayingHistoryRow](conn, GET_PLAYING_HISTORY, _decode_hook, bucket_seconds, since)
+
+
+async def get_playing_low(conn: ConnectionLike, *, recorded_at: datetime.datetime | None) -> models.GameStat | None:
+    row = await conn.fetchrow(GET_PLAYING_LOW, recorded_at)
+    if row is None:
+        return None
+    return models.GameStat(id=row[0], playing=row[1], visits=row[2], recorded_at=row[3])
+
+
+async def get_playing_peak(conn: ConnectionLike, *, recorded_at: datetime.datetime | None) -> models.GameStat | None:
+    row = await conn.fetchrow(GET_PLAYING_PEAK, recorded_at)
     if row is None:
         return None
     return models.GameStat(id=row[0], playing=row[1], visits=row[2], recorded_at=row[3])
