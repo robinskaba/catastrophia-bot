@@ -537,7 +537,7 @@ class StatsCog(commands.Cog):
     @describe(period="Time period to display (defaults to the last 24 hours).")
     @choices(period=_PLAYING_PERIOD_CHOICES)
     async def playing(self, interaction: Interaction, period: str = "24h") -> None:
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
         title = f"Playing players ({_PLAYING_PERIOD_NAMES[period].lower()})"
         history = await self._bot.stats_service.get_playing_history(period)
@@ -547,7 +547,8 @@ class StatsCog(commands.Cog):
                     title=title,
                     description="No player data recorded for this period.",
                     color=Color.red(),
-                )
+                ),
+                ephemeral=True,
             )
             return
 
@@ -576,7 +577,7 @@ class StatsCog(commands.Cog):
             )
         )
 
-        await interaction.followup.send(file=graph_file, embed=embed)
+        await interaction.followup.send(file=graph_file, embed=embed, ephemeral=True)
 
 
 async def setup(bot: commands.Bot) -> None:
