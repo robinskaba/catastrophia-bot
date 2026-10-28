@@ -77,6 +77,22 @@ class LeaderboardsClient(ExperienceClient):
 
         return data["value"]
 
+    async def set_live_leaderboards_top10(self, leaderboards: dict) -> bool:
+        # universe-datastores.objects:update
+        endpoint = (
+            self._leaderboards_top10_endpoint + "/" + Config.LEADERBOARDS_TOP10_KEY
+        )
+        payload = {"value": leaderboards}
+        try:
+            async with self._session.patch(
+                url=endpoint, headers=self.headers, json=payload
+            ) as response:
+                response.raise_for_status()
+        except aiohttp.ClientError as e:
+            _logger.error(f"failed to set live top 10 leaderboards: {e}")
+            return False
+        return True
+
     async def get_past_leaderboards_top10(
         self, month: int | None = None, year: int | None = None
     ):

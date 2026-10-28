@@ -321,4 +321,31 @@ class StatsService:
             _logger.error("failed to transfer stats - problem deleting source data")
             return False
 
+        if not await self._remove_from_top10_leaderboards(source_user.id):
+            _logger.error(
+                "failed to transfer stats - problem removing source from top 10 leaderboards"
+            )
+            return False
+
         return True
+
+    async def _remove_from_top10_leaderboards(self, user_id: int) -> bool:
+        top10 = await self._leaderboard_client.get_live_leaderboards_top10()
+        if not top10:
+            return False
+
+        removed_total = 0
+        for period in ("AllTime", "Monthly", "Yearly"):
+            for stat_key, entries in top10.get(period, {}).items():
+                kept = [e for e in entries if int(e["UserId"]) != int(user_id)]
+                removed = len(entries) - len(kept)
+                if not removed:
+                    continue
+                # placeholders go last so the list stays sorted
+                kept += [{"Count": 0, "UserId": 1} for _ in range(removed)]
+                top10[period][stat_key] = kept
+                removed_total += removed
+
+        if not removed_total:
+            return True
+        return await self._leaderboard_client.set_live_leaderboards_top10(top10)
