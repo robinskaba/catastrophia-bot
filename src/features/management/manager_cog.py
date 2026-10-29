@@ -113,7 +113,8 @@ class ManagerCog(commands.Cog):
 
         asyncio.create_task(repeat_message())
         await interaction.response.send_message(
-            f"Your message will be repeated every {frequency} hours for {duration} hours."
+            f"Your message will be repeated every {frequency} hours for {duration} hours.",
+            ephemeral=True,
         )
 
 
