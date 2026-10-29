@@ -7,6 +7,8 @@ from discord import Interaction, Member, Object, TextChannel, User, app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 
+from src.common.config.config import Config
+
 _logger = logging.getLogger(__name__)
 
 
@@ -115,6 +117,24 @@ class ManagerCog(commands.Cog):
         await interaction.response.send_message(
             f"Your message will be repeated every {frequency} hours for {duration} hours.",
             ephemeral=True,
+        )
+
+    @app_commands.command(
+        name="say", description="Makes the bot say a message in this channel."
+    )
+    @app_commands.describe(message="Message for the bot to say")
+    @app_commands.default_permissions(administrator=True)
+    async def say(self, interaction: Interaction, message: str):
+        if interaction.user.get_role(Config.OWNER_ROLE_ID) is None:
+            await interaction.response.send_message(
+                "You don't have permission to use this command.", ephemeral=True
+            )
+            return
+
+        await interaction.channel.send(message)
+        await interaction.response.send_message("Message sent.", ephemeral=True)
+        _logger.info(
+            f"{interaction.user.name} made the bot say in #{interaction.channel.name}: {message}"
         )
 
 
