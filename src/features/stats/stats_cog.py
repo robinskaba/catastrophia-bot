@@ -532,11 +532,11 @@ class StatsCog(commands.Cog):
         )
 
     @command(
-        name="playing", description="Shows a graph of how many players were playing."
+        name="ccu", description="Shows a graph of how many players were playing."
     )
     @describe(period="Time period to display (defaults to the last 24 hours).")
     @choices(period=_PLAYING_PERIOD_CHOICES)
-    async def playing(self, interaction: Interaction, period: str = "24h") -> None:
+    async def ccu(self, interaction: Interaction, period: str = "24h") -> None:
         await interaction.response.defer(ephemeral=True)
 
         title = f"Playing players ({_PLAYING_PERIOD_NAMES[period].lower()})"
